@@ -1,0 +1,634 @@
+syntax = "proto3";
+
+package workflow;
+
+import "Foundation.proto";
+import "google/protobuf/timestamp.proto";
+
+message Task {
+
+	/*
+	A task resource describes an activity that can be performed and tracks the state of completion of that activity. It is a representation that an activity should be or has been initiated, and eventually, 
+	represents the successful or unsuccessful completion of that activity.
+	*/
+
+	message TaskOutput {
+		CodeableConcept type = 1; // Label for output
+		string value = 2; // Result of output
+	}
+
+	message TaskInput {
+		CodeableConcept type = 1; // Label for the input
+		string value = 2; // Content to use in performing the task
+	}
+
+	message TaskRestriction {
+		int64 repetitions = 1; // How many times to repea
+		Period period = 2; // When fulfillment sought
+		Reference recipient = 3; // For whom is fulfillment sought?
+	}
+
+	message TaskRequester {
+		Reference agent = 1; // Individual asking for task
+		Reference onBehalfOf = 2; // Organization individual is acting for
+	}
+
+	Identifier identifier = 1; // Task Instance Identifier
+	string definitionUri = 2; // Formal definition of task
+	Reference definitionReference = 3;
+	Reference basedOn = 4; // Request fulfilled by this task
+	Identifier groupIdentifier = 5; // Requisition or grouper id
+	Reference partOf = 6; // Composite task
+	string status = 7; // draft | requested | received | accepted | +
+	CodeableConcept statusReason = 8; // Reason for current status
+	CodeableConcept businessStatus = 9; // E.g. "Specimen collected", "IV prepped"
+	string intent = 10; // proposal | plan | order +
+	string priority = 11; // normal | urgent | asap | stat
+	CodeableConcept code = 12; // Task Type
+	string description = 13; // Human-readable explanation of task
+	Reference focus = 14; // What task is acting on
+	Reference for = 15; // Beneficiary of the Task
+	Reference context = 16; // Healthcare event during which this task originated
+	Period executionPeriod = 17; // Start and end time of execution
+	Timestamp authoredOn = 18; // Task Creation Date
+	Timestamp lastModified = 19; // Task Last Modified Date
+	TaskRequester requester = 20; // Who is asking for task to be done
+	CodeableConcept performerType = 21; // requester | dispatcher | scheduler | performer | monitor | manager | acquirer | reviewer
+	Reference owner = 22; // Responsible individual
+	CodeableConcept reason = 23; // Why task is needed
+	Annotation note = 24; // Comments made about the task
+	Reference relevantHistory = 25; // Key events in history of the Task
+	TaskRestriction restriction = 26; // Constraints on fulfillment tasks
+	TaskInput input = 27; // Information used to perform task
+	TaskOutput output = 28; // Information produced as part of task
+
+}
+
+message Appointment {
+
+	/*
+	Appointment resources are used to provide information about a planned meeting that may be in the future or past. The resource only
+	describes a single meeting, a series of repeating visits would require multiple appointment resources to be created for each instance. 
+	Examples include a scheduled surgery, a follow-up for a clinical visit, a scheduled conference call between clinicians to discuss a case, 
+	the reservation of a piece of diagnostic equipment for a particular use, etc. The visit scheduled by an appointment may be in person or remote
+	 (by phone, video conference, etc.) All that matters is that the time and usage of one or more individuals, locations and/or pieces of equipment
+	  is being fully or partially reserved for a designated period of time.
+	*/
+
+	message AppointmentParticipant {
+		CodeableConcept type = 1; // Role of participant in the appointment
+		Reference actor = 2; // Person, Location/HealthcareService or Device
+		string required = 3; // required | optional | information-only
+		string status = 4; // accepted | declined | tentative | needs-action
+	}
+
+	Identifier identifier = 1; // External Ids for this item
+	string status = 2; // proposed | pending | booked | arrived | fulfilled | cancelled | noshow | entered-in-error
+	CodeableConcept serviceCategory = 3; // A broad categorisation of the service that is to be performed during this appointment
+	CodeableConcept serviceType = 4; // The specific service that is to be performed during this appointment
+	CodeableConcept specialty = 5; // The specialty of a practitioner that would be required to perform the service requested in this appointment
+	CodeableConcept appointmentType = 6; // The style of appointment or patient that has been booked in the slot (not service type)
+	CodeableConcept reason = 7; // Reason this appointment is scheduled
+	Reference indication = 8; // Reason the appointment is to takes place (resource)
+	uint64 priority = 9; // Used to make informed decisions if needing to re-prioritize
+	string description = 10; // Shown on a subject line in a meeting request, or appointment list
+	Reference supportingInformation = 11; // Additional information to support the appointment
+	Timestamp start = 12; // When appointment is to take place
+	Timestamp end = 13; // When appointment is to conclude
+	float minutesDuration = 14; // Can be less than start/end (e.g. estimate)
+	Reference slot = 15; // The slots that this appointment is filling
+	Timestamp created = 16; // The date that this appointment was initially created
+	string comment = 17; // Additional comments
+	Reference incomingReferral = 18; // The ReferralRequest provided as information to allocate to the Encounter
+	AppointmentParticipant participant = 19; // Participants involved in appointment
+	Period requestedPeriod = 20; // Potential date/time interval(s) requested to allocate the appointment within
+}
+
+message AppointmentResponse {
+	
+	/*
+	Appointment resources are used to provide information about a planned meeting that may be in the future or past. The resource only
+	describes a single meeting, a series of repeating visits would require multiple appointment resources to be created for each instance. 
+	Examples include a scheduled surgery, a follow-up for a clinical visit, a scheduled conference call between clinicians to discuss a case, 
+	the reservation of a piece of diagnostic equipment for a particular use, etc. The visit scheduled by an appointment may be in person or remote
+	 (by phone, video conference, etc.) All that matters is that the time and usage of one or more individuals, locations and/or pieces of equipment
+	  is being fully or partially reserved for a designated period of time.
+	*/
+
+	Identifier identifier = 1; // External Ids for this item
+	Reference appointment = 2; // Appointment this response relates to
+	Timestamp start = 3; // Time from appointment, or requested new start time
+	Timestamp end = 4; // Time from appointment, or requested new end time
+	CodeableConcept participantType = 5; // Role of participant in the appointment
+	Reference actor = 6; // Person, Location/HealthcareService or Device
+	string participantStatus = 7; // accepted | declined | tentative | in-process | completed | needs-action | entered-in-error
+	string comment = 8; // Additional comments
+}
+
+message Schedule {
+
+	/*
+	Schedule resources provide a container for time-slots that can be booked using an appointment. It provides the window of time (period) that slots are defined 
+	for and what type of appointments can be booked.
+	The schedule does not provide any information about actual appointments. This separation also greatly assists where access to the appointments would not be permitted 
+	for security or privacy reasons, while still being able to determine if an appointment might be available.
+	*/
+
+	Identifier identifier = 1; // External Ids for this item
+	bool active = 2; // Whether this schedule is in active use
+	CodeableConcept serviceCategory = 3; // A broad categorisation of the service that is to be performed during this appointment
+	CodeableConcept serviceType = 4; // The specific service that is to be performed during this appointment
+	CodeableConcept specialty = 5; // The specialty of a practitioner that would be required to perform the service requested in this appointment
+	Reference actor = 6; // The resource this Schedule resource is providing availability information for. These are expected to usually be one of HealthcareService, Location, Practitioner, PractitionerRole, Device, Patient or RelatedPerson
+	Period planningHorizon = 7; // The period of time that the slots that are attached to this Schedule resource cover (even if none exist). These cover the amount of time that an organization's planning horizon; the interval for which they are currently accepting appointments. This does not define a "template" for planning outside these dates
+	string comment = 8; // Comments on the availability to describe any extended information. Such as custom constraints on the slots that may be associated
+}
+
+message Slot {
+
+	/*
+	A slot of time on a schedule that may be available for booking appointments.
+	*/
+
+	Identifier identifier = 1; // External Ids for this item
+	CodeableConcept serviceCategory = 2; // A broad categorisation of the service that is to be performed during this appointment
+	CodeableConcept serviceType = 3; // The type of appointments that can be booked into this slot (ideally this would be an identifiable service - which is at a location, rather than the location itself). If provided then this overrides the value provided on the availability resource
+	CodeableConcept specialty = 4; // The specialty of a practitioner that would be required to perform the service requested in this appointment
+	CodeableConcept appointmentType = 5; // The style of appointment or patient that may be booked in the slot (not service type)
+	Reference schedule = 6; // The schedule resource that this slot defines an interval of status information
+	string status = 7; // busy | free | busy-unavailable | busy-tentative | entered-in-error
+	Timestamp start = 8; // Date/Time that the slot is to begin
+	Timestamp end = 9; // Date/Time that the slot is to conclude
+	bool overbooked = 10; // This slot has already been overbooked, appointments are unlikely to be accepted for this time
+	string comment = 11; // Comments on the slot to describe any extended information. Such as custom constraints on the slot
+}
+
+message ReferralRequest {
+
+	/*
+	This resource is used to share relevant information required to support a referral request or a transfer of care request from one practitioner or organization to another. It is intended for use when a patient is required to be referred to another provider for a consultation/second opinion
+	and/or for short term or longer term management of one or more health issues or problems.
+	*/
+
+	message RRRequester {
+		Reference agent = 1; // Individual making the request
+		Reference onBehalfOf = 2; // Organization agent is acting for
+	}
+
+	Identifier identifier = 1; // Business identifier
+	Reference definition = 2; // Instantiates protocol or definition
+	Reference basedOn = 3; // Request fulfilled by this request
+	Reference replaces = 4; // Request(s) replaced by this request
+	Identifier groupIdentifier = 5; // Composite request this is part of
+	string status = 6; // draft | active | suspended | cancelled | completed | entered-in-error | unknown
+	string intent = 7; // proposal | plan | order
+	CodeableConcept type = 8; // Referral/Transition of care request type
+	string priority = 9; // Urgency of referral / transfer of care request
+	CodeableConcept serviceRequest = 10; // Actions requested as part of the referral
+	Reference subject = 11; // Patient referred to care or transfer
+	Reference context = 12; // Originating encounter
+	Timestamp occurenceDateTime = 13; // When the service(s) requested in the referral should occur
+	Period occurencePeriod = 14;
+	Timestamp authoredOn = 15; // Date of creation/activation
+	RRRequester requester = 16; // Who/what is requesting service
+	CodeableConcept specialty = 17; // The clinical specialty (discipline) that the referral is requested for
+	Reference recipient = 18; // Receiver of referral / transfer of care request
+	CodeableConcept reasonCode = 19; // Reason for referral / transfer of care request
+	Reference reasonReference = 20; // Why is service needed?
+	string description = 21; // A textual description of the referral
+	Reference supportingInfo = 22; // Additonal information to support referral or transfer of care request
+	Annotation note = 23; // Comments made about referral request
+	Reference relevantHistory = 24; // Key events in history of request
+}
+
+message ProcedureRequest {
+
+	/*
+	ProcedureRequest is a record of a request for a procedure to be planned, proposed, or performed, as distinguished
+	by the ProcedureRequest.intent field value, with or on a patient. Examples of procedures include diagnostic tests/studies,
+	endoscopic procedures, counseling, biopsies, therapies (e.g., physio-, social-, psychological-), (exploratory) surgeries or procedures, 
+	exercises, and other clinical interventions.
+	*/
+
+	message PRRequester {
+		Reference agent = 1; // Individual making the request
+		Reference onBehalfOf = 2; // Organization agent is acting for
+	}
+
+	Identifier identifier = 1; // Identifiers assigned to this order
+	Reference definition = 2; // Protocol or definition
+	Reference basedOn = 3; // What request fulfills
+	Reference replaces = 4; // What request replaces
+	Identifier requisition = 5; // Composite Request ID 
+	string status = 6; // draft | active | suspended | completed | entered-in-error | cancelled
+	string intent = 7; // proposal | plan | order +
+	string priority = 8; // routine | urgent | asap | stat
+	bool doNotPerform = 9; // True if procedure should not be performed
+	CodeableConcept category = 10; // Classification of procedure
+	CodeableConcept code = 11; // What is being requested/ordered
+	Reference subject = 12; // Individual the service is ordered for
+	Reference context = 13; // Encounter or Episode during which request was created
+	Timestamp occurenceDateTime = 14; // When procedure should occur
+	Period occurencePeriod = 15;
+	Timing occurenceTiming = 16;
+	bool asNeededBoolean = 17; // Preconditions for procedure or diagnostic
+	CodeableConcept asNeededCodeableConcept = 18;
+	Timestamp authoredOn = 19; // Date request signed
+	PRRequester requester = 20; // Who/what is requesting procedure or diagnostic
+	CodeableConcept performerType = 21; // Performer role
+	Reference performer = 22; // Requested perfomer
+	CodeableConcept reasonCode = 23; // Explanation/Justification for test
+	Reference reasonReference = 24; // Explanation/Justification for test
+	Reference supportingInfo = 25; // Additional clinical information
+	Reference specimen = 26; // Procedure Samples
+	CodeableConcept bodySite = 27; // Location on Body
+	Annotation note = 28; // Comments
+	Reference relevantHistory = 29; // Request provenance
+
+}
+
+message NutritionOrder {
+
+	/*
+	The NutritionOrder resource describes a request for oral diets (including general diets such as General Healthy diet, or therapeutic diets such as Consistent Carbohydrate, 2 gram Sodium, or Fluid Restricted), oral nutrition supplements (such as nutritionally complete pre-packed drinks),
+	enteral nutrition (tube feedings) and infant formula which govern the distribution of food and nutritional products used to feed patients within an in-patient setting. It does not cover orders for parenteral (IV) nutrition which are typically filled by pharmacy. These nutrition orders
+	are combined with information on a patient's food allergies and intolerances, and ethnic or cultural food preferences (e.g. Kosher or Vegetarian) to inform healthcare personnel about the type, texture, and/or quantity of foods that the patient should receive or consume.
+	*/
+
+	message NOOralDiet {
+
+		message NONutrient {
+			CodeableConcept modifier = 1; // Type of nutrient that is being modified
+			Quantity amount = 2; // Quantity of the specified nutrient
+		}
+
+		message NOTexture {
+			CodeableConcept modifier = 1; // Code to indicate how to alter the texture of the foods, e.g. pureed
+			CodeableConcept foodType = 2; // Concepts that are used to identify an entity that is ingested for nutritional purposes
+		}
+
+		CodeableConcept type = 1; // Type of oral diet or diet restrictions that describe what can be consumed orally
+		Timing schedule = 2; // Scheduled frequency of diet
+		NONutrient nutrient = 3; // Required nutrient modifications
+		NOTexture texture = 4; // Required texture modifications
+		CodeableConcept fluidConsistencyType = 5; // The required consistency of fluids and liquids provided to the patient
+		string instruction = 6; // Instructions or additional information about the oral diet
+	}
+
+	message NOSupplement {
+		CodeableConcept type = 1; // Type of supplement product requested
+		string productName = 2; // Product or brand name of the nutritional supplement
+		Timing schedule = 3; // Scheduled frequency of supplement
+		Quantity quantity = 4; // Amount of the nutritional supplement
+		string instruction = 5; // Instructions or additional information about the oral supplement
+	}
+
+	message NOEnteralFormula {
+
+		message NOAdministration {
+			Timing schedule = 1; // Scheduled frequency of enteral feeding
+			Quantity quantity = 2; // The volume of formula to provide
+			Quantity rateQuantity = 3; // Speed with which the formula is provided per period of time
+			Ratio rateRatio = 4;
+		}
+
+		CodeableConcept baseFormulaType = 1; // Type of enteral or infant formula
+		string baseFormulaProductName = 2; // Product or brand name of the enteral or infant formula
+		CodeableConcept additiveType = 3; // Type of modular component to add to the feeding
+		string additiveProductName = 4; // Product or brand name of the modular additive
+		Quantity caloricDensity = 5; // Amount of energy per specified volume that is required
+		CodeableConcept routeOfAdministration = 6; // How the formula should enter the patient's gastrointestinal tract
+		NOAdministration administration = 7; // Formula feeding instruction as structured data
+		Quantity maxVolumeToDeliver = 8; // Upper limit on formula volume per unit of time
+		string administrationInstruction = 9; // Formula feeding instructions expressed as text
+	}
+
+	Identifier identifier = 1; // Identifiers assigned to this order
+	string status = 2; // proposed | draft | planned | requested | active | on-hold | completed | cancelled | entered-in-error
+	Reference patient = 3; // The person who requires the diet, formula or nutritional supplement
+	Reference encounter = 4; // The encounter associated with this nutrition order
+	Timing dateTime = 5; // Date and time the nutrition order was requested
+	Reference orderer = 6; // Who ordered the diet, formula or nutritional supplement
+	Reference allergyIntolerance = 7; // List of the patient's food and nutrition-related allergies and intolerances
+	CodeableConcept foodPreferenceModifier = 8; // Order-specific modifier about the type of food that should be given
+	CodeableConcept excludeFoodModifier = 9; // Order-specific modifier about the type of food that should not be given
+	NOOralDiet oralDiet = 10; // Oral diet components
+	NOSupplement supplement = 11; // Supplement components
+	NOEnteralFormula enteralFormula = 12; // Enteral formula components
+
+}
+
+message VisionPrescription {
+
+	/*
+	This resource covers all prescriptions for glasses and contact lenses for a patient.
+	*/
+
+	message VPDispense {
+		CodeableConcept product = 1; // Product to be supplied
+		string eye = 2; // right | left
+		float sphere = 3; // Lens sphere
+		float cylinder = 4; // Lens cylinder
+		int32 axis = 5; // Lens axis
+		float prism = 6; // Lens prism
+		string base = 7; // up | down | in | out
+		float add = 8; // Lens add
+		float power = 9; // Contact lens power
+		float backCurve = 10; // Contact lens back curvature
+		float diameter = 11; // Contact lens diameter
+		Quantity duration = 12; // Lens wear duration
+		string color = 13; // Color required
+		string brand = 14; // Brand required
+		Annotation note = 15; // Notes for coatings
+	}
+
+	Identifier identifier = 1; // Business identifier
+	string status = 2; // active | cancelled | draft | entered-in-error
+	Reference patient = 3; // Who prescription is for
+	Reference encounter = 4; // Created during encounter / admission / stay
+	Timestamp dateWritten = 5; // When prescription was authorized
+	Reference prescriber = 6; // Who authorizes the vision product
+	CodeableConcept reasonCodeableConcept = 7; // Reason or indication for writing the prescription
+	Reference reasonReference = 8;
+	VPDispense dispense = 9; // Vision supply authorization
+}
+
+message ActivityDefinition {
+
+	/*
+	An ActivityDefinition is a shareable, consumable description of some activity to be performed. 
+	It may be used to specify actions to be taken as part of a workflow, order set, or protocol, 
+	or it may be used independently as part of a catalog of activities such as orderables.
+	*/
+
+	message ADParticipant {
+		string code = 1; // patient | practitioner | related-person
+		CodeableConcept role = 2; // E.g. Nurse, Surgeon, Parent, etc
+	}
+
+	message ADDynamicValue {
+		string description = 1; // Natural language description of the dynamic value
+		string path = 2; // The path to the element to be set dynamically
+		string language = 3; // Language of the expression
+		string expression = 4; // An expression that provides the dynamic value for the customization
+	}
+
+	string url = 1; // Logical URI to reference this activity definition (globally unique)
+	Identifier identifier = 2; // Additional identifier for the activity definition
+	string version = 3; // Business version of the activity definition
+	string name = 4; // Name for this activity definition (computer friendly)
+	string title = 5; // Name for this activity definition (human friendly)
+	string status = 6; // draft | active | retired | unknown
+	bool experimental = 7; // For testing purposes, not real usage
+	Timestamp date = 8; // Date this was last changed
+	string publisher = 9; // Name of the publisher (organization or individual)
+	string description = 10; // Natural language description of the activity definition
+	string purpose = 11; // Why this activity definition is defined
+	string usage = 12; // Describes the clinical usage of the asset
+	Timestamp approvalDate = 13; // When the activity definition was approved by publisher
+	Timestamp lastReviewDate = 14; // When the activity definition was last reviewed
+	Period effectivePeriod = 15; // When the activity definition is expected to be used
+	UsageContext useContext = 16; // Context the content is intended to support
+	CodeableConcept jurisdiction = 17; // Intended jurisdiction for activity definition (if applicable)
+	CodeableConcept topic = 18; // E.g. Education, Treatment, Assessment, etc
+	Contributor contributor = 19; // A content contributor
+	ContactDetail contact = 20; // Contact details for the publisher
+	string copyright = 21; // Use and/or publishing restrictions
+	RelatedArtifact relatedArtifact = 22; // Additional documentation, citations, etc
+	Reference library = 23; // Logic used by the asset
+	string kind = 24; // Kind of resource
+	CodeableConcept code = 25; // Detail type of activity
+	Timing timingTiming = 26; // When activity is to occur
+	Timestamp timingDateTime = 27;
+	Period timingPeriod = 28;
+	Duration timingDuration = 29;
+	Range timingRange = 30;
+	Reference location = 31; // Where it should happen
+	ADParticipant participant = 32; // Who should participate in the action
+	Reference productReference = 33; // What's administered/supplied
+	CodeableConcept productCodeableConcept = 34;
+	Quantity quantity = 35; // How much is administered/consumed/supplied
+	Dosage dosage = 36; // Detailed dosage instructions
+	CodeableConcept bodySite = 37; // What part of body to perform on
+	Reference transform = 38; // Transform to apply the template
+	ADDynamicValue dynamicValue = 39; // Dynamic aspects of the definition
+}
+
+message PlanDefinition {
+
+	/*
+	A plan definition is a pre-defined group of actions to be taken in particular circumstances, 
+	often including conditional elements, options, and other decision points. The resource is flexible
+	enough to be used to represent a variety of workflows, as well as clinical decision support and quality 
+	improvement assets, including order sets, protocols, and decision support rules
+	*/
+
+	message PDAction {
+
+		message PDCondition {
+			string kind = 1; // applicability | start | stop
+			string description = 2; // Natural language description of the condition
+			string language = 3; // Language of the expression
+			string expression = 4; // Boolean-valued expression
+		}
+
+		message PDRelatedAction {
+			string actionId = 1; // What action is this related to
+			string relationship = 2; // before-start | before | before-end | concurrent-with-start | concurrent | concurrent-with-end | after-start | after | after-end
+			Duration offsetDuration = 3; // Time offset for the relationship
+			Range offsetRange = 4;
+		}
+
+		message PDParticipant {
+			string type = 1; // patient | practitioner | related-person
+			CodeableConcept role = 2; // E.g. Nurse, Surgeon, Parent, etc
+		}
+
+		message PDDynamicValue {
+			string description = 1; // Natural language description of the dynamic value
+			string path = 2; // The path to the element to be set dynamically
+			string language = 3; // Language of the expression
+			string expression = 4; // An expression that provides the dynamic value for the customization
+		}
+
+		string label = 1; // User-visible label for the action (e.g. 1. or A.)
+		string title = 2; // User-visible title
+		string description = 3; // Short description of the action
+		string textEquivalent = 4; // Static text equivalent of the action, used if the dynamic aspects cannot be interpreted by the receiving system
+		CodeableConcept code = 5; // Code representing the meaning of the action or sub-actions
+		CodeableConcept reason = 6; // Why the action should be performed
+		RelatedArtifact documentation = 7; // Supporting documentation for the intended performer of the action
+		string goalId = 8; // What goals this action supports
+		TriggerDefinition triggerDefinition = 9; // When the action should be triggered
+		PDCondition condition = 10; // Whether or not the action is applicable
+		DataRequirement input = 11; // Input data requirements
+		DataRequirement output = 12; // Output data definition
+		PDAction relatedAction = 13; // Relationship to another action
+		Timestamp timingDateTime = 14; // When the action should take place
+		Period timingPeriod = 15;
+		Duration timingDuration = 16;
+		Range timingRange = 17;
+		Timing timingTiming = 18;
+		PDParticipant participant = 19; // Who should participate in the action
+		Coding type = 20; // create | update | remove | fire-event
+		string groupingBehavior = 21; // visual-group | logical-group | sentence-group
+		string selectionBehavior = 22; // any | all | all-or-none | exactly-one | at-most-one | one-or-more
+		string requiredBehavior = 23; // must | could | must-unless-documented
+		string precheckBehavior = 24; // yes | no
+		string cardinalityBehavior = 25; // single | multiple
+		Referencee definition = 26; // Description of the activity to be performed
+		Referencee transform = 27; // Transform to apply the template
+		PDDynamicValue dynamicValue = 28; // Dynamic aspects of the definition
+		PDAction action = 29; // A sub-action
+	}
+
+	message PDGoal {
+
+		message PDTarget {
+			CodeableConcept measure = 1; // The parameter whose value is to be tracked
+			Quantity detailQuantity = 2; // The target value to be achieved
+			Range detailRange = 3;
+			CodeableConcept detailCodeableConcept = 4;
+			Duration due = 5; // Reach goal within
+		}
+
+		CodeableConcept category = 1; // E.g. Treatment, dietary, behavioral, etc
+		CodeableConcept description = 2; // Code or text describing the goal
+		CodeableConcept priority = 3; // high-priority | medium-priority | low-priority
+		CodeableConcept start = 4; // When goal pursuit begins
+		CodeableConcept addresses = 5; // What does the goal address
+		RelatedArtifact documentation = 6; // Supporting documentation for the goal
+		PDTarget target = 7; // Target outcome for the goal
+	}
+
+	string url = 1; // Logical URI to reference this plan definition (globally unique)
+	Identifier identifier = 2; // Additional identifier for the plan definition
+	string version = 3; // Business version of the plan definition
+	string name = 4; // Name for this plan definition (computer friendly)
+	string title = 5; // Name for this plan definition (human friendly)
+	CodeableConcept type = 6; // order-set | protocol | eca-rule
+	string status = 7; // draft | active | retired | unknown
+	bool experimental = 8; // For testing purposes, not real usage
+	Timestamp date = 9; // Date this was last changed
+	string publisher = 10; // Name of the publisher (organization or individual)
+	string description = 11; // Natural language description of the plan definition
+	string purpose = 12; // Why this plan definition is defined
+	string usage = 13; // Describes the clinical usage of the asset
+	Timestamp approvalDate = 14; // When the plan definition was approved by publisher
+	Timestamp lastReviewDate = 15; // When the plan definition was last reviewed
+	Period effectivePeriod = 16; // When the plan definition is expected to be used
+	UsageContext useContext = 17; // Context the content is intended to support
+	CodeableConcept jurisdiction = 18; // Intended jurisdiction for plan definition (if applicable)
+	CodeableConcept topic = 19; // E.g. Education, Treatment, Assessment, etc
+	Contributor contributor = 20; // A content contributor
+	ContactDetail contact = 21; // Contact details for the publisher
+	string copyright = 22; // Use and/or publishing restrictions
+	RelatedArtifact relatedArtifact = 23; // Related artifacts for the asset
+	Reference library = 24; // Logic used by the plan definition
+	PDGoal goal = 25; // What the plan is trying to accomplish
+	PDAction action = 26; // Action defined by the plan
+
+}
+
+message DeviceRequest {
+
+	/*
+	This resource describes the request for the use of a device by a patient. The device may be any pertinent device specified in the Device resource. 
+	Examples of devices that may be requested include wheelchair, hearing aids, or an insulin pump. The request may lead to the dispensing of the device 
+	to the patient or for use by the patient.
+	*/
+
+	message DRRequester {
+		Reference agent = 1; // Individual making the request
+		Reference onBehalfOf = 2; // Organization agent is acting for
+	}
+
+	Identifier identifier = 1; // External Request identifier
+	Reference definition = 2; // Protocol or definition
+	Reference basedOn = 3; // What request fulfills
+	Reference priorRequest = 4; // What request replaces
+	Identifier groupIdentifier = 5; // Identifier of composite request
+	string status = 6; // draft | active | suspended | completed | entered-in-error | cancelled
+	CodeableConcept intent = 7; // proposal | plan | original-order | encoded | reflex-order
+	string priority = 8; // Indicates how quickly the {{title}} should be addressed with respect to other requests
+	Reference codeReference = 9; // Device requested
+	CodeableConcept codeCodeableConcept = 10;
+	Reference subject = 11; // Focus of request
+	Reference context = 12; // Encounter or Episode motivating request
+	Timestamp occurenceDateTime = 13; // Desired time or schedule for use
+	Period occurencePeriod = 14;
+	Timing occurenceTiming = 15;
+	Timestamp authoredOn = 16; // When recorded
+	DRRequester requester = 17; // Who/what is requesting diagnostics
+	CodeableConcept performerType = 18; // Fille role
+	Reference performer = 19; // Requested Filler
+	CodeableConcept reasonCode = 20; // Coded Reason for request
+	Reference reasonReference = 21; // Linked Reason for request
+	Reference supportingInfo = 22; // Additional clinical information
+	Annotation note = 23; // Notes or comments
+	Reference relevantHistory = 24; // Request provenance
+}
+
+message SupplyRequest {
+
+	/*
+	The scope of the SupplyRequest resource is for recording the request of supplies used in the healthcare process. 
+	This includes supplies specifically used in the treatment of patients as well as supply movement within an institution 
+	(transport a set of supplies from materials management to a service unit (nurse station). This resource does not include the provisioning of transportation services.
+	*/
+
+	message SRRequester {
+		Reference agent = 1; // Individual making the request
+		Reference onBehalfOf = 2; // Organization agent is acting for
+	}
+
+	message SROrderedItem {
+		Quantity quantity = 1; // The requested amount of the item indicated
+		CodeableConcept itemCodeableConcept = 2; // Medication, Substance, or Device requested to be supplied
+		Reference itemReference = 3; 
+	}
+
+	Identifier identifier = 1; // Unique identifier
+	string status = 2; // draft | active | suspended +
+	CodeableConcept category = 3; // The kind of supply (central, non-stock, etc.)
+	string priority = 4; // routine | urgent | asap | stat
+	SROrderedItem orderedItem = 5; // The item being requested
+	Timestamp occurenceDateTime = 6; // When the request should be fulfilled
+	Period occurencePeriod = 7;
+	Timing occurenceTiming = 8;
+	Timestamp authoredOn = 9; // When the request was made
+	SRRequester requester = 10; // Who/what is requesting service
+	Reference supplier = 11; // Who is intended to fulfill the request
+	CodeableConcept reasonCodeableConcept =12; // Why the supply item was requested
+	Reference reasonReference = 13;
+	Reference deliverFrom = 14; // The origin of the supply
+	Reference deliverTo = 15; // The destination of the supply
+}
+
+message SupplyDelivery {
+
+	/*
+	The scope of the supply resource is for supplies used in the healthcare process. This includes supplies specifically used in the treatment of patients as well as supply
+	 movement within an institution (transport a set of supplies from materials management to a service unit (nurse station). This resource does not include the provisioning of transportation services.
+	*/
+
+	message SDSuppliedItem {
+		Quantity quantity = 1; // Amount dispensed
+		CodeableConcept itemCodeableConcept = 2; // Medication, Substance, or Device supplied
+		Reference itemReference = 3;
+	}
+
+	Identifier identifier = 1; // External identifier
+	Reference basedOn = 2; // Fulfills plan, proposal or order
+	Reference partOf = 3; // Part of referenced event
+	string status = 4; // in-progress | completed | abandoned | entered-in-error
+	Reference patient = 5; // Patient for whom the item is supplied
+	CodeableConcept type = 6; // Category of dispense event
+	SDSuppliedItem suppliedItem = 7; // The item that is delivered or supplied
+	Timestamp occurenceDateTime = 8; // When event occurred
+	Period occurencePeriod = 9;
+	Timing occurenceTiming = 10;
+	Reference supplier = 11; // Dispenser
+	Reference destination = 12; // Where the Supply was sent
+	Reference receiver = 13; // Who collected the Supply
+}

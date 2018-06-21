@@ -1,0 +1,792 @@
+syntax = "proto3";
+
+package financial;
+
+import "Foundation.proto";
+import "google/protobuf/timestamp.proto";
+
+message Account {
+
+	/*
+	A financial tool for tracking value accrued for a particular purpose. 
+	In the healthcare field, used to track charges for a patient, cost centers, etc.
+	*/
+
+	message ACCoverage {
+		Reference coverage = 1; // The party(s) that are responsible for covering the payment of this account
+		uint64 priority = 2; // The priority of the coverage in the context of this account
+	}
+
+	message ACGuarantor {
+		Reference party = 1; // Responsible entity
+		bool onHold = 2; // Credit or other hold applied
+		Period period = 3; // Guarrantee account during
+	}
+
+	Identifier identifier = 1; // Account number
+	string status = 2; // active | inactive | entered-in-error
+	CodeableConcept type = 3; // E.g. patient, expense, depreciation
+	string name = 4; // Human-readable label
+	Reference subject = 5; // What is account tied to?
+	Period period = 6; // Transaction window
+	Period active = 7; // Time window that transactions may be posted to this account
+	Quantity balance = 8; // How much is in account?
+	ACCoverage coverage = 9; // The party(s) that are responsible for covering the payment of this account, and what order should they be applied to the account
+	Reference owner = 10; // Who is responsible?
+	string description = 11; // Explanation of purpose/use
+	ACGuarantor guarantor = 12; // Responsible for the account
+}
+
+message Coverage {
+
+	/*
+	The Coverage resource is intended to provide the high level identifiers
+	and potentially descriptors of an insurance plan which may used to pay for, in part or in whole, the provision of health care products and services.
+	This resource may also be used to register 'SelfPay' where an individual or organization other than an insurer is taking responsibility for payment 
+	for a portion of the health care costs.
+	*/
+
+	message CCGrouping {
+		string group = 1; // An identifier for the group
+		string groupDisplay = 2; // Display text for an identifier for the group
+		string subGroup = 3; // An identifier for the subsection of the group
+		string subGroupDisplay = 4; // Display text for the subsection of the group
+		string plan = 5; // An identifier for the plan
+		string planDisplay = 6; // Display text for the plan
+		string subPlan = 7; // An identifier for the subsection of the plan
+		string subPlanDisplay = 8; // Display text for the subsection of the plan
+		string class = 9; // An identifier for the class
+		string classDisplay = 10; // Display text for the class
+		string subClass = 11; // An identifier for the subsection of the class
+		string subClassDisplay = 12; // Display text for the subsection of the subclass
+	}
+
+	Identifier identifier = 1; // The primary coverage ID
+	string status = 2; // active | cancelled | draft | entered-in-error
+	CodeableConcept type = 3; // Type of coverage such as medical or accident
+	Reference policyHolder = 4; // Owner of the policy
+	Reference subscriber = 5; // Subscriber to the policy
+	string subscriberId = 6; // ID assigned to the Subscriber
+	Reference beneficiary = 7; // Plan Beneficiary
+	CodeableConcept relationship = 8; // Beneficiary relationship to the Subscriber
+	Period period = 9; // Coverage start and end dates
+	Reference payor = 10; // Identifier for the plan or agreement issuer
+	CCGrouping grouping = 11; // Additional coverage classifications
+	string dependent = 12; // Dependent number
+	string sequence = 13; // The plan instance or sequence counter
+	uint64 order = 14; // Relative order of the coverage
+	string network = 15; // Insurer network
+	Reference contract = 16; // Contract details
+}
+
+message EligibilityRequest {
+
+	/*
+	The EligibilityRequest provides patient and insurance coverage information to an insurer for them to respond, in the form of an Eligibility Response,
+	with information regarding whether the stated coverage is valid and in-force, and potentially the amount of coverage which may be available to any 
+	services classes identified in this request.
+	*/
+
+	Identifier identifier = 1; // Business Identifier
+	string status = 2; // active | cancelled | draft | entered-in-error
+	CodeableConcept priority = 3; // Desired processing priority
+	Reference patient = 4; // The subject of the Products and Services
+	Timestamp servicedDate = 5; // Estimated date or dates of Service
+	Period servicedPeriod = 6;
+	Timestamp created = 7; // Creation date
+	Reference enterer = 8; // Author
+	Reference provider = 9; // Responsible practitioner
+	Reference organization = 10; // Responsible organization
+	Reference insurer = 11; // Target
+	Reference facility = 12; // Servicing Facility
+	Reference coverage = 13; // Insurance or medical plan
+	string businessArrangement = 14; // Business agreement
+	CodeableConcept benefitCategory = 15; // Type of services covered
+	CodeableConcept benefitSubCategory = 16; // Detailed services covered within the type
+}
+
+message EligibilityResponse {
+
+	/*
+	The EligibilityResponse resource provides eligibility and plan details from the processing of an EligibilityRequest resource. 
+	It combines key information from a payor as to whether a Coverage is in-force, and optionally the nature of the Policy details.
+	*/
+
+	message ERError {
+		CodeableConcept code = 1; // Error code detailing processing issues
+	}
+
+	message ERInsurance {
+
+		message ERBenefitBalance {
+
+			message ERFinancial {
+				CodeableConcept type = 1; // Deductable, visits, benefit amount
+				uint64 allowedUnsignedInt = 2; // Benefits allowed
+				string allowedString = 3;
+				Quantity allowedMoney = 4;
+				uint64 usedUnsignedInt = 5; // Benefits used
+				Quantity usedMoney = 6;
+			}
+
+			CodeableConcept category = 1; // Type of services covered
+			CodeableConcept subCategory = 2; // Detailed services covered within the type
+			bool excluded = 3; // Excluded from the plan
+			string name = 4; // Short name for the benefit
+			string description = 5; // Description of the benefit or services covered
+			CodeableConcept network = 6; // In or out of network
+			CodeableConcept unit = 7; // Individual or family
+			CodeableConcept term = 8; // Annual or lifetime
+			ERFinancial financial = 9; // Benefit Summary
+		}
+
+		Reference coverage = 1; // Updated Coverage details
+		Reference contract = 2; // Contract details
+		ERBenefitBalance benefitsBalance = 3; // Benefits by Category
+	}
+
+	Identifier identifier = 1; // Business Identifier
+	string code = 2; // active | cancelled | draft | entered-in-error
+	Timestamp created = 3; // Creation date
+	Reference requestProvider = 4; // Responsible practitioner
+	Reference requestOrganization = 5; // Responsible organization
+	Reference request = 6; // Eligibility reference
+	CodeableConcept outcome = 7; // complete | error | partial
+	string disposition = 8; // Disposition Message
+	Reference insurer = 9; // Insurer issuing the coverage
+	bool inforce = 10; // Coverage inforce indicator
+	ERInsurance insurance = 11; // Details by insurance coverage
+	CodeableConcept form = 12; // Printed Form Identifier
+	ERError error = 13; // Processing errors
+}
+
+message EnrollmentRequest {
+
+	/*
+	The EnrollmentRequest resource allows for the addition and removal of plan subscribers and their dependents to health insurance coverage.
+	*/
+
+	Identifier identifier = 1; // Business Identifier
+	string status = 2; // active | cancelled | draft | entered-in-error
+	Timestamp created = 3; // Creation date
+	Reference insurer = 4; // Target
+	Reference provider = 5; // Responsible practitioner
+	Reference organization = 6; // Responsible organization
+	Reference subject = 7; // The subject of the Products and Services
+	Reference coverage = 8; // Insurance information
+}
+
+message EnrollmentResponse {
+
+	/*
+	This resource provides enrollment and plan details from the processing of an Enrollment resource.
+	*/
+
+	Identifier identifier = 1; // Business Identifier
+	string status = 2; // active | cancelled | draft | entered-in-error
+	Reference request = 3; // Claim reference
+	CodeableConcept outcome = 4; // complete | error | partial
+	string disposition = 5; // Disposition Message
+	Timestamp created = 6; // Creation date
+	Reference organization = 7; // Insurer
+	Reference requestProvider = 8; // Responsible practitioner
+	Reference requestOrganization = 9; // Responsible organization
+}
+
+message Claim {
+
+	/*
+	The Claim is used by providers and payors, insurers, to exchange the financial information, and supporting clinical information, 
+	regarding the provision of healthcare services with payors an firms which provide data analytics. The primary uses of this resource is to support eClaims,
+	 the exchange of proposed or actual services to benefit payors, insurers and national health programs, for treatment payment planning and reimbursement.
+
+	The Claim is intended to support:
+
+	- Claims - where the provision of goods and services is complete and reimbursement is sought.
+	- Pre-Authorization - where the provision of goods and services is proposed and either authorization and/or the reservation of funds is desired.
+	- Pre-Determination - where the provision of goods and services is explored to determine what services may be covered and to what amount. Essentially a 'what if' claim.
+	
+	The Claim also supports:
+
+	- Up to a 3 tier hierarchy of Goods, products, and Services, to support simple to complex billing.
+	- Multiple insurance programs arranged in a Coordination of Benefit sequence to enable exchange with primary, secondary, tertiary etc. insurance coverages.
+	- Assignment of benefit - the benefit may be requested to be directed to the subscriber, the provider or another party.
+	*/
+
+	message ClaimRelated {
+		Reference claim = 1; // Reference to the related claim
+		CodeableConcept relationship = 2; // How the reference claim is related
+		Identifier reference = 3; // Related file or case reference
+	}
+
+	message ClaimPayee {
+		CodeableConcept type = 1; // Type of party: Subscriber, Provider, other
+		Coding resourceType = 2; // organization | patient | practitioner | relatedperson
+		Reference party = 3; // Party to receive the payable
+	}
+
+	message ClaimCareTeam {
+		uint64 sequence = 1; // Number to covey order of careTeam
+		Reference provider = 2; // Provider individual or organization
+		bool responsible = 3; // Billing provider
+		CodeableConcept role = 4; // Role on the team
+		CodeableConcept qualification = 5; // Type, classification or Specialization
+	}
+
+	message ClaimInformation {
+		uint64 sequence = 1; // Information instance identifier
+		CodeableConcept category = 2; // General class of information
+		CodeableConcept code = 3; // Type of information
+		Timestamp timingDate = 4; // When it occurred
+		Period timingPeriod = 5;
+		string valueString = 6; // Additional Data or supporting information
+		Quantity valueQuantity = 7;
+		Attachement valueAttachement = 8;
+		Reference valueReference = 9;
+		CodeableConcept reason = 10; // Reason associated with the information
+	}
+
+	message ClaimDiagnosis {
+		uint64 sequence = 1; // Number to covey order of diagnosis
+		CodeableConcept diagnosisCodeableConcept = 2; // Patient's diagnosis
+		Reference diagnosisReference = 3;
+		CodeableConcept type = 4; // Timing or nature of the diagnosis
+		CodeableConcept packageCode = 5; // Package billing code
+	}
+
+	message ClaimProcedure {
+		uint64 sequence = 1; // Procedure sequence for reference
+		Timestamp date = 2; // When the procedure was performed
+		CodeableConcept procedureCodeableConcept = 3; // Patient's list of procedures performed
+		Reference procedureReference = 4;
+	}
+
+	message ClaimInsurance {
+		uint64 sequence = 1; // Service instance identifier
+		bool focal = 2; // Is the focal Coverage
+		Reference coverage = 3; // Insurance information
+		string businessArrangement = 4; // Business agreement
+		string preAuthRef = 5; // Pre-Authorization/Determination 
+		Reference claimResponse = 6; // Adjudication results
+	}
+
+	message ClaimAccident {
+		Timestamp date = 1; // When the accident occurred
+		CodeableConcept type = 2; // The nature of the accident
+		Address locationAddress = 3; // Accident Place
+		Reference locationReference = 4;
+	}
+
+	message ClaimItem {
+
+		message ClaimDetail {
+
+			message ClaimSubDetail {
+				uint64 sequence = 1; // Service instance
+				CodeableConcept revenue = 2; // Revenue or cost center code
+				CodeableConcept category = 3; // Type of service or product
+				CodeableConcept service = 4; // Billing Code
+				CodeableConcept modifier = 5; // Service/Product billing modifiers
+				CodeableConcept programCode = 6; // Program specific reason for item inclusion
+				Quantity quantity = 7; // Count of Products or Services
+				Quantity unitPrice = 8; // Fee, charge or cost per point
+				float factor = 9; // Price scaling factor
+				Quantity net = 10; // Net additional item cost
+				Reference udi = 11; // Unique Device Identifier
+			}
+
+			uint64 sequence = 1; // Service instance
+			CodeableConcept revenue = 2; // Revenue or cost center code
+			CodeableConcept category = 3; // Type of service or product
+			CodeableConcept service = 4; // Billing Code
+			CodeableConcept modifier = 5; // Service/Product billing modifiers
+			CodeableConcept programCode = 6; // Program specific reason for item inclusion
+			Quantity quantity = 7; // Count of Products or Services
+			Quantity unitPrice = 8; // Fee, charge or cost per point
+			float factor = 9; // Price scaling factor
+			Quantity net = 10; // Total additional item cost
+			Reference udi = 11; // Unique Device Identifier
+			ClaimSubDetail subDetail = 12; // Additional items
+		}
+
+		uint64 sequence = 1; // Service instance
+		uint64 careTeamLinkId = 2; // Applicable careTeam members
+		uint64 diagnosisLinkId = 3; // Applicable diagnoses
+		uint64 procedureLinkId = 4; // Applicable procedures
+		uint64 informationLinkId = 5; // Applicable exception and supporting information
+		CodeableConcept revenue = 6; // Revenue or cost center code
+		CodeableConcept category = 7; // Type of service or product
+		CodeableConcept service = 8; // Billing Code
+		CodeableConcept modifier = 9; // Service/Product billing modifiers
+		CodeableConcept programCode = 10; // Program specific reason for item inclusion
+		Timestamp servicedDate = 11; // Date or dates of Service
+		Period servicedPeriod = 12;
+		CodeableConcept locationCodeableConcept = 13; // 	Place of service
+		Address locationAddress = 14;
+		Reference locationReference = 15;
+		Quantity quantity = 16; // Count of Products or Services
+		Quantity unitPrice = 17; // Fee, charge or cost per point
+		float factor = 18; // Price scaling factor
+		Quantity net = 19; // Total item cost
+		Reference udi = 20; // Unique Device Identifier
+		CodeableConcept bodySite = 21; // Service Location
+		CodeableConcept subSite = 22; // Service Sub-location
+		Reference encounter = 23; // Encounters related to this billed item
+		ClaimDetail detail = 24; // Additional items
+	}
+
+	Identifier identifier = 1; // Claim number
+	string status = 2; // active | cancelled | draft | entered-in-error
+	CodeableConcept type = 3; // Type or discipline
+	CodeableConcept subType = 4; // Finer grained claim type information
+	Code use = 5; // complete | proposed | exploratory | other
+	Reference patient = 6; // The subject of the Products and Services
+	Period billablePeriod = 7; // Period for charge submission
+	Timestamp created = 8; // Creation date
+	Reference enterer = 9; // Author
+	Reference insurer = 10; // Target
+	Reference provider = 11; // Responsible provider
+	Reference organization = 12; // Responsible organization
+	CodeableConcept priority = 13; // Desired processing priority
+	CodeableConcept fundsReserve = 14; // Funds requested to be reserved
+	ClaimRelated related = 15; // Related Claims which may be revelant to processing this claim
+	Reference prescription = 16; // Prescription authorizing services or products
+	Reference originalPrescription = 17; // Original prescription if superceded by fulfiller
+	ClaimPayee payee = 18; // Party to be paid any benefits payable
+	Reference referral = 19; // Treatment Referral
+	Reference facility = 20; // Servicing Facility
+	ClaimCareTeam careTeam = 21; // Members of the care team
+	ClaimInformation information = 22; // Exceptions, special considerations, the condition, situation, prior or concurrent issues
+	ClaimDiagnosis diagnosis = 23; // List of Diagnosis
+	ClaimProcedure procedure = 24; // Procedures performed
+	ClaimInsurance insurance = 25; // Insurance or medical plan
+	ClaimAccident accident = 26; // Details about an accident
+	Period employmentImpacted = 27; // Period unable to work
+	Period hospitalization = 28; // Period in hospital
+	ClaimItem item = 29; // Goods and Services
+	Quantity total = 30; // Total claim cost
+}
+
+message ClaimResponse {
+
+	/*
+	This resource provides the adjudication details from the processing of a Claim resource.
+	*/
+
+	message CRInsurance {
+		int64 sequence = 1; // Service instance identifier
+		bool focal = 2; // Is the focal Coverage
+		Reference coverage = 3; // Insurance information
+		string businessArrangement = 4; // Business agreement
+		string preAuthRef = 5; // Pre-Authorization/Determination Reference
+		Reference claimResponse = 6; // Adjudication results
+	}
+
+	message CRProcessNote {
+		int64 number = 1; // Sequence Number for this note
+		CodeableConcept type = 2; // Note explanatory text
+		string text = 3; // Note explanatory text
+		CodeableConcept language = 4; // Language if different from the resource
+	}
+
+	message CRPayment {
+		CodeableConcept type = 1; // Partial or Complete
+		Quantity adjustment = 2; // Payment adjustment for non-Claim issues
+		CodeableConcept adjustmentReason = 3; // Explanation for the non-claim adjustment
+		Timestamp date = 4; // Expected date of Payment
+		Quantity amount = 5; // Payable amount after adjustment
+		Identifier identifier = 6; // Identifier of the payment instrument
+	}
+
+	message CRError {
+		int64 sequenceLinkId = 1; // Item sequence number
+		int64 detailSequenceLinkId = 2; // Detail sequence number
+		int64 subdetailSequence = 3; // Subdetail sequence number
+		CodeableConcept code = 4; // Error code detailing processing issues
+	}
+
+	message CRAddItem {
+
+		message CRAddedDetail {
+			CodeableConcept revenue = 1; // Revenue or cost center code
+			CodeableConcept category = 2; // Type of service or product
+			CodeableConcept service = 3; // Billing Code
+			CodeableConcept modifier = 4; // Service/Product billing modifiers
+			Quantity fee = 5; // Professional fee or Product charge
+			int64 noteNumber = 6; // List of note numbers which apply
+			EBAdjudication adjudication = 7; // Added items detail adjudication
+		}
+
+		int64 sequenceLinkId = 1; // Service instances
+		CodeableConcept revenue = 2; // Revenue or cost center code
+		CodeableConcept category = 3; // Type of service or product
+		CodeableConcept service = 4; // Billing Code
+		CodeableConcept modifier = 5; // Service/Product billing modifiers
+		Quantity fee = 6; // Professional fee or Product charge
+		int64 noteNumber = 7; // List of note numbers which apply
+		EBAdjudication adjudication = 8; // Added items adjudication
+		CRAddedDetail detail = 9; // Added items details
+	}
+
+	message CRItem {
+
+		message CRAdjudication {
+			CodeableConcept category = 1; // Adjudication category such as co-pay, eligible, benefit, etc.
+			CodeableConcept reason = 2; // Explanation of Adjudication outcome
+			Quantity amount = 3; // Monetary amount
+			float value = 4; // Non-monetary value
+		}
+
+		message CRDetail {
+
+			message CRSubDetail {
+				uint64 sequenceLinkId = 1; // Service instance
+				int64 noteNumber = 2; // List of note numbers which apply
+				EBAdjudication adjudication = 3; // Subdetail level adjudication details
+			}
+
+			uint64 sequenceLinkId = 1; // Service instance
+			int64 noteNumber = 2; // List of note numbers which apply
+			CRAdjudication adjudication = 3; // Detail level adjudication details
+			CRSubDetail subDetail = 4; // Subdetail line items
+		}
+
+		uint64 sequenceLinkId = 1; // Service instance
+		int64 noteNumber = 2; // List of note numbers which apply
+		CRAdjudication adjudication = 3; // Adjudication details
+		CRDetail detail = 4; // Detail line items
+	}
+
+	Identifier identifier = 1; // Response number
+	string status = 2; // active | cancelled | draft | entered-in-error
+	Reference patient = 3; // The subject of the Products and Services
+	Timestamp created = 4; // Creation date
+	Reference insurer = 5; // Insurance issuing organization
+	Reference requestProvider = 6; // Responsible practitioner
+	Reference requestOrganization = 7; // Responsible organization
+	Reference request = 8; // Id of resource triggering adjudication
+	CodeableConcept outcome = 9; // complete | error | partial
+	string disposition = 10; // Disposition Message
+	CodeableConcept payeeType = 11; // Party to be paid any benefits payable
+	CRItem item = 12; // Line items
+	CRAddItem addItem = 13; // Insurer added line items
+	CRError error = 13; // Processing errors
+	Quantity totalCost = 14; // Total Cost of service from the Claim
+	Quantity unallocDeductable = 15; // Unallocated deductible
+	Quantity totalBenefit = 16; // Total benefit payable for the Claim
+	CRPayment payment = 17; // Payment details, if paid
+	Coding reserved = 18; // Funds reserved status
+	CodeableConcept form = 19; // Printed Form Identifier
+	CRProcessNote processNote = 20; // Processing notes
+	Reference communicationRequest = 21; // Request for additional information
+	CRInsurance insurance = 22; // Insurance or medical plan
+}
+
+message PaymentNotice {
+
+	/*
+	The PaymentNotice resource indicates the resource for which the payment has been indicated and reports the current status information of that payment. 
+	The payment notice may be used by providers and payors to advise the Provider or regulatory bodies of the state of a payment (cheque in the mail/EFT sent,
+	payment cashed, payment cancelled). Employers or Insurance Exchanges may use this to advise payors of premium payment.
+
+	Payors and /or providers may have the need to advise providers and/or regulators of the status of claim settlement and payment completion. 
+	This same resource may be used by employers and insurance exchanges to advise payors that premium payments have been issued and settled.
+	*/
+
+	Identifier identifier = 1; // Business Identifier
+	string status = 2; // active | cancelled | draft | entered-in-error
+	Reference request = 3; // Request reference
+	Reference response = 4; // Response reference
+	Timestamp statusDate = 5; // Payment or clearing date
+	Timestamp created = 6; // Creation date
+	Reference target = 7; // Insurer or Regulatory body
+	Reference provider = 8; // Responsible practitioner
+	Reference organization = 9; // Responsible organization
+	CodeableConcept paymentStatus = 10; // Whether payment has been sent or cleared
+}
+
+message PaymentReconciliation {
+
+	/*
+	The PaymentReconciliation resource provides the bulk payment details associated with a payment by the payor for goods and services rendered by a provider
+	to patients covered by insurance plans offered by that payor. These are the payment reconciliation details which align to the individual payment amounts indicated on discrete ClaimResponses.
+
+	Bulk payments need to provide a means to associate the amounts paid again specific Claims, and other financial exchanges and adjustments, to the bulk payment itself in order to reconcile provider accounts receivable.
+	*/
+
+	message PRProcessNote {
+		CodeableConcept type = 1; // display | print | printoper
+		string text = 2; // Comment on the processing
+	}
+
+	message PRDetail {
+		CodeableConcept type = 1; // Type code
+		Reference request = 2; // Claim
+		Reference response = 3; // Claim Response
+		Reference submitter = 4; // Organization which submitted the claim
+		Reference payee = 5; // Organization which is receiving the payment
+		Timestamp date = 6; // Invoice date
+		Quantity amount = 7; // Amount being paid
+	}
+
+	Identifier identifier = 1; // Business Identifier
+	string status = 2; // active | cancelled | draft | entered-in-error
+	Period period = 3; // Period covered
+	Timestamp created = 4; // Creation date
+	Reference organization = 5; // Insurer
+	Reference request = 6; // Claim reference
+	CodeableConcept outcome = 7; // complete | error | partial
+	string disposition = 8; // Disposition Message
+	Reference requestProvider = 9; // Responsible practitioner
+	Reference requestOrganization = 10; // Responsible organization
+	PRDetail detail = 11; // List of settlements
+	CodeableConcept form = 12; // Printed Form Identifier
+	Quantity total = 13; // Total amount of Payment
+	CodeableConcept processNote = 14; // Processing comments
+}
+
+message ExplanationOfBenefit {
+
+	/*
+	The ExplanationOfBenefit resource combines key information from a Claim, a ClaimResponse and optional Account information to inform a patient of the goods and services rendered by a provider and the settlement 
+	made under the patient's coverage in respect of that Claim.
+
+	This is the logical combination of the Claim, ClaimResponse and some Coverage accounting information in respect of a single payor prepared for consumption by the subscriber and/or patient. 
+	It is not simply a series of pointers to referred-to content models, is a physical subset scoped to the adjudication by a single payor which details the services rendered, the amounts to 
+	be settled and to whom, and optionally the coverage used and/or remaining.
+	*/
+
+	message EBRelated {
+		Reference claim = 1; // Reference to the related claim
+		CodeableConcept relationship = 2; // How the reference claim is related
+		Identifier reference = 3; // Related file or case reference
+	}
+
+	message EBPayee {
+		CodeableConcept type = 1; // Type of party: Subscriber, Provider, other
+		Coding resourceType = 2; // organization | patient | practitioner | relatedperson
+		Reference party = 3; // Party to receive the payable
+	}
+
+	message EBCareTeam {
+		uint64 sequence = 1; // Number to covey order of careTeam
+		Reference provider = 2; // Provider individual or organization
+		bool responsible = 3; // Billing provider
+		CodeableConcept role = 4; // Role on the team
+		CodeableConcept qualification = 5; // Type, classification or Specialization
+	}
+
+	message EBInformation {
+		uint64 sequence = 1; // Information instance identifier
+		CodeableConcept category = 2; // General class of information
+		CodeableConcept code = 3; // Type of information
+		Timestamp timingDate = 4; // When it occurred
+		Period timingPeriod = 5;
+		string valueString = 6; // Additional Data or supporting information
+		Quantity valueQuantity = 7;
+		Attachement valueAttachement = 8;
+		Reference valueReference = 9;
+		CodeableConcept reason = 10; // Reason associated with the information
+	}
+
+	message EBDiagnosis {
+		uint64 sequence = 1; // Number to covey order of diagnosis
+		CodeableConcept diagnosisCodeableConcept = 2; // Patient's diagnosis
+		Reference diagnosisReference = 3;
+		CodeableConcept type = 4; // Timing or nature of the diagnosis
+		CodeableConcept packageCode = 5; // Package billing code
+	}
+
+	message EBProcedure {
+		uint64 sequence = 1; // Procedure sequence for reference
+		Timestamp date = 2; // When the procedure was performed
+		CodeableConcept procedureCodeableConcept = 3; // Patient's list of procedures performed
+		Reference procedureReference = 4;
+	}
+
+	message EBInsurance {
+		Reference coverage = 1; // Insurance information
+		string preAuthRef = 2; // Pre-Authorization/Determination
+	}
+
+	message EBAccident {
+		Timestamp date = 1; // When the accident occurred
+		CodeableConcept type = 2; // The nature of the accident
+		Address locationAddress = 3; // Accident Place
+		Reference locationReference = 4;
+	}
+
+	message EBItem {
+
+		message EBAdjudication {
+			CodeableConcept category = 1; // Adjudication category such as co-pay, eligible, benefit, etc.
+			CodeableConcept reason = 2; // Explanation of Adjudication outcome
+			Quantity amount = 3; // Monetary amount
+			float decimal = 4; // Non-monetary value
+		}
+
+		message EBDetail {
+
+			message EBSubDetail {
+				uint64 sequence = 1; // Service instance
+				CodeableConcept type = 2; // Type of product or service
+				CodeableConcept revenue = 3; // Revenue or cost center code
+				CodeableConcept category = 4; // Type of service or product
+				CodeableConcept service = 5; // Billing Code
+				CodeableConcept modifier = 6; // Service/Product billing modifiers
+				CodeableConcept programCode = 7; // Program specific reason for item inclusion
+				Quantity quantity = 8; // Count of Products or Services
+				Quantity unitPrice = 9; // Fee, charge or cost per point
+				float factor = 10; // Price scaling factor
+				Quantity net = 11; // Net additional item cost
+				Reference udi = 12; // Unique Device Identifier
+				int64 noteNumber = 13; // List of note numbers which apply
+				EBAdjudication adjudication = 14; // Language if different from the resource
+			}
+
+			uint64 sequence = 1; // Service instance
+			CodeableConcept type = 2; // Group or type of product or service
+			CodeableConcept revenue = 3; // Revenue or cost center code
+			CodeableConcept category = 4; // Type of service or product
+			CodeableConcept service = 5; // Billing Code
+			CodeableConcept modifier = 6; // Service/Product billing modifiers
+			CodeableConcept programCode = 7; // Program specific reason for item inclusion
+			Quantity quantity = 8; // Count of Products or Services
+			Quantity unitPrice = 9; // Fee, charge or cost per point
+			float factor = 10; // Price scaling factor
+			Quantity net = 11; // Total additional item cost
+			Reference udi = 12; // Unique Device Identifier
+			int64 noteNumber = 13; // List of note numbers which apply
+			EBAdjudication adjudication = 14; // Detail level adjudication details
+			EBSubDetail subDetail = 15; // Additional items
+		}
+
+		uint64 sequence = 1; // Service instance
+		uint64 careTeamLinkId = 2; // Applicable careTeam members
+		uint64 diagnosisLinkId = 3; // Applicable diagnoses
+		uint64 procedureLinkId = 4; // Applicable procedures
+		uint64 informationLinkId = 5; // Applicable exception and supporting information
+		CodeableConcept revenue = 6; // Revenue or cost center code
+		CodeableConcept category = 7; // Type of service or product
+		CodeableConcept service = 8; // Billing Code
+		CodeableConcept modifier = 9; // Service/Product billing modifiers
+		CodeableConcept programCode = 10; // Program specific reason for item inclusion
+		Timestamp servicedDate = 11; // Date or dates of Service
+		Period servicedPeriod = 12;
+		CodeableConcept locationCodeableConcept = 13; // 	Place of service
+		Address locationAddress = 14;
+		Reference locationReference = 15;
+		Quantity quantity = 16; // Count of Products or Services
+		Quantity unitPrice = 17; // Fee, charge or cost per point
+		float factor = 18; // Price scaling factor
+		Quantity net = 19; // Total item cost
+		Reference udi = 20; // Unique Device Identifier
+		CodeableConcept bodySite = 21; // Service Location
+		CodeableConcept subSite = 22; // Service Sub-location
+		Reference encounter = 23; // Encounters related to this billed item
+		int64 noteNumber = 24; // List of note numbers which apply
+		EBAdjudication adjudication = 25; // Adjudication details
+		EBDetail detail = 26; // Additional items
+	}
+
+	message EBAddItem {
+
+		message EBAddedDetail {
+			CodeableConcept revenue = 1; // Revenue or cost center code
+			CodeableConcept category = 2; // Type of service or product
+			CodeableConcept service = 3; // Billing Code
+			CodeableConcept modifier = 4; // Service/Product billing modifiers
+			Quantity fee = 5; // Professional fee or Product charge
+			int64 noteNumber = 6; // List of note numbers which apply
+			EBAdjudication adjudication = 7; // Added items detail adjudication
+		}
+
+		int64 sequenceLinkId = 1; // Service instances
+		CodeableConcept revenue = 2; // Revenue or cost center code
+		CodeableConcept category = 3; // Type of service or product
+		CodeableConcept service = 4; // Billing Code
+		CodeableConcept modifier = 5; // Service/Product billing modifiers
+		Quantity fee = 6; // Professional fee or Product charge
+		int64 noteNumber = 7; // List of note numbers which apply
+		EBAdjudication adjudication = 8; // Added items adjudication
+		EBAddedDetail detail = 9; // Added items details
+	}
+
+	message EBPayment {
+		CodeableConcept type = 1; // Partial or Complete
+		Quantity adjustment = 2; // Payment adjustment for non-Claim issues
+		CodeableConcept adjustmentReason = 3; // Explanation for the non-claim adjustment
+		Timestamp date = 4; // Expected date of Payment
+		Quantity amount = 5; // Payable amount after adjustment
+		Identifier identifier = 6; // Identifier of the payment instrument
+	}
+
+	message EBProcessNote {
+		int64 number = 1; // Sequence number for this note
+		CodeableConcept type = 2; // display | print | printoper
+		string text = 3; // Note explanitory text
+		CodeableConcept language = 4; // Language if different from the resource
+	}
+
+	message EBBenefitBalance {
+
+		message EBFinancial {
+			CodeableConcept type = 1; // Deductable, visits, benefit amount
+			uint64 allowedUnsignedInt = 2; // Benefits allowed
+			string allowedString = 3;
+			Quantity allowedMoney = 4;
+			uint64 usedUnsignedInt = 5; // Benefits used
+			Quantity usedMoney = 6;
+		}
+
+		CodeableConcept category = 1; // Type of services covered
+		CodeableConcept subCategory = 2; // Detailed services covered within the type
+		bool excluded = 3; // Excluded from the plan
+		string name = 4; // Short name for the benefit
+		string description = 5; // Description of the benefit or services covered
+		CodeableConcept network = 6; // In or out of network
+		CodeableConcept unit = 7; // Individual or family
+		CodeableConcept term = 8; // Annual or lifetime
+		EBFinancial financial = 9; // Benefit Summary
+	}
+
+	Identifier identifier = 1; // Business Identifier
+	string status = 2; // active | cancelled | draft | entered-in-error
+	CodeableConcept type = 3; // Type or discipline
+	CodeableConcept subType = 4; // Finer grained claim type information
+	Reference patient = 5; // The subject of the Products and Services
+	Period billablePeriod = 6; // Period for charge submission
+	Timestamp created = 7; // Creation date
+	Reference enterer = 8; // Author
+	Reference insurer = 9; // Insurer responsible for the EOB
+	Reference provider = 10; // Responsible provider for the claim
+	Reference organization = 11; // Responsible organization for the claim
+	Reference referral = 12; // Treatment Referral
+	Reference facility = 13; // Servicing Facility
+	Reference claim = 14; // Claim reference
+	Reference claimResponse = 15; // Claim response reference
+	CodeableConcept outcome = 16; // complete | error | partial
+	string disposition = 17; // Disposition Message
+	EBRelated related = 18; // Related Claims which may be revelant to processing this claim
+	Reference prescription = 19; // Prescription authorizing services or products
+	Reference originalPrescription = 20; // Original prescription if superceded by fulfiller
+	EBPayee payee = 21; // Party to be paid any benefits payable
+	EBInformation information = 22; // Exceptions, special considerations, the condition, situation, prior or concurrent issues
+	EBCareTeam careTeam = 23; // Care Team members
+	EBDiagnosis diagnosis = 24; // List of Diagnosis
+	EBProcedure procedure = 25; // Procedures performed
+	int64 precedence = 26; // Precedence (primary, secondary, etc.)
+	EBInsurance insurance = 27; // Insurance or medical plan
+	EBAccident accident = 28; // Details of an accident
+	Period employmentImpacted = 29; // Period unable to work
+	Period hospitalization = 30; // Period in hospital
+	EBItem item = 31; // Goods and Services
+	EBAddItem addItem = 32; // Insurer added line items
+	Quantity totalCost = 33; // Total Cost of service from the Claim
+	Quantity unallocDeductable = 34; // Unallocated deductable
+	Quantity totalBenefit = 35; // Total benefit payable for the Claim
+	EBPayment payment = 36; // Payment (if paid)
+	CodeableConcept form = 37; // Printed Form Identifier
+	EBProcessNote processNote = 38; // Processing notes
+	EBBenefitBalance benefitBalance = 39; // Balance by Benefit Category
+}

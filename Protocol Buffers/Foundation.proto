@@ -1,0 +1,462 @@
+syntax = "proto3";
+
+package foundation;
+
+import "google/protobuf/timestamp.proto";
+
+message Attachement {
+
+	/*
+	This type is for containing or referencing attachments - additional data content defined in other formats. 
+	The most common use of this type is to include images or reports in some report format such as PDF. 
+	However it can be used for any data that has a MIME type.
+	*/
+
+	string contentType = 1; // Mime type of the content, with charset etc.
+	string language = 2; // Human language of the content (BCP-47)
+	string data = 3; // Data inline, base64ed
+	string url = 4; // URL where the data can be found
+	uint64 size = 5; // Number of bytes of content (if url provided)
+	string hash = 6; // Hash of the data (sha-1, base64ed)
+	string title = 7; // Label to display in place of the data
+	Timestamp creation = 8; // Date attachment was first created
+}
+
+message Coding {
+
+	/*
+	A Coding is a representation of a defined concept using a symbol from a defined "code system".
+	*/
+
+	string system = 1; // Identity of the terminology system
+	string version = 2; // Version of the system - if relevant
+	string code = 3; // Symbol in syntax defined by the system
+	string display = 4; // Representation defined by the system
+	bool userSelected = 5; // If this coding was chosen directly by the user
+}
+
+message CodeableConcept {
+
+	/*
+	A CodeableConcept represents a value that is usually supplied by providing a reference to one or more 
+	terminologies or ontologies, but may also be defined by the provision of text. 
+	This is a common pattern in healthcare data.
+	*/
+
+	Coding coding = 1; // Code defined by a terminology system
+	string text = 2; // Plain text representation of the concept
+}
+
+message Quantity {
+
+	/*
+	A measured amount (or an amount that can potentially be measured)
+	*/
+	enum QTComparator {
+		LESS_THAN = 0;
+		LESS_THAN_EQUAL = 1;
+		GREATER_THAN = 2;
+		GREATER_THAN_EQUAL = 3;
+	}
+
+	float value = 1; // Numerical value (with implicit precision)
+	QTComparator comparator = 2; // < | <= | >= | >
+	string unit = 3; // Unit representation
+	string system = 4; // System that defines coded unit form
+	string code = 5; // Coded form of the unit
+}
+
+message Range {
+
+	/*
+	A set of ordered Quantity values defined by a low and high limit.
+	*/
+	Quantity low = 1; // Low limit
+	Quantity high = 2; // High limit
+}
+
+message Ratio {
+
+	/*
+	A relationship between two Quantity values expressed as a numerator and a denominator.
+	*/
+	Quantity numerator = 1; // Numerator value
+	Quantity denominator = 2; // Denominator value
+}
+
+message Period {
+
+	/*
+	A time period defined by a start and end date/time.
+	A period specifies a range of times. The context of use will specify whether the entire range applies 
+	(e.g. "the patient was an inpatient of the hospital for this time range") or one value from the period applies 
+	(e.g. "give to the patient between 2 and 4 pm on 24-Jun 2013").
+	*/
+	Timestamp start = 1; // Starting time with inclusive boundary
+	Timestamp end = 2; // End time with inclusive boundary, if not ongoing
+}
+
+message SampledData {
+
+	/*
+	Data that comes from a series of measurements taken by a device, which may have upper and lower limits. 
+	The data type also supports more than one dimension in the data.
+
+	A SampledData provides a concise way to handle the data produced by devices that sample a particular
+	 physical state at a high frequency. A typical use for this is for the output of an ECG or EKG device. 
+	 The data type includes a series of raw decimal values (which are mostly simple integers), along with 
+	 adjustments for scale and factor. These are interpreted such that: 
+
+	 original measured value[i] = SampledData.data[i] * SampledData.scaleFactor + SampledData.origin.value
+	*/
+
+	Quantity origin = 1; // Zero value and units
+	float period = 2; // Number of milliseconds between samples
+	float factor = 3; // Multiply data by this before adding to origin - default: 1
+	float lowerLimit = 4; // Lower limit of detection
+	float upperLimit = 5; // Upper limit of detection
+	uint64 dimensions = 6; // Number of sample points at each time point
+	repeated float data = 7; // Decimal values with spaces, or "E" | "U" | "L" ("E" (error), "L" (below detection limit) and "U" (above detection limit))
+}
+
+message Identifier {
+
+	/*
+	A numeric or alphanumeric string that is associated with a single object or entity within a given system. 
+	Typically, identifiers are used to connect content in resources to external content available in other frameworks or protocols. 
+	Identifiers are associated with objects, and may be changed or retired due to human or system process and errors.
+	*/
+
+	enum IDUse {
+		USUAL = 0;
+		OFFICIAL = 1;
+		TEMP = 2;
+		SECONDARY = 3;
+	}
+
+	IDUse use = 1; // usual | official | temp | secondary (If known)
+	CodeableConcept type = 2; // Description of identifier
+	string system = 3; // The namespace for the identifier value
+	string value = 4; // The value that is unique
+	Period period = 5; // Time period when id is/was valid for use
+	Reference assigner = 6; // Organization that issued id (may be just text)
+ }
+
+message HumanName {
+
+ 	/*
+ 	A name of a human with text, parts and usage information.
+ 	Names may be changed or repudiated. People may have different names in different contexts. 
+ 	Names may be divided into parts of different type that have variable significance depending on context, though the division into parts is not always significant. 
+ 	With personal names, the different parts may or may not be imbued with some implicit meaning; various cultures associate different 
+ 	importance with the name parts and the degree to which systems SHALL care about name parts around the world varies widely.
+ 	*/
+
+ 	enum HNUse {
+ 		USUAL = 0;
+ 		OFFICIAL = 1;
+ 		TEMP = 2;
+ 		NICKNAME = 3;
+ 		ANONYMOUS = 4;
+ 		OLD = 5;
+ 		MAIDEN = 6;
+ 	}
+
+	HNUse use = 1; // usual | official | temp | nickname | anonymous | old | maiden
+ 	string text = 2; // Text representation of the full name
+ 	string family = 3; // Family name (often called 'Surname')
+ 	repeated string given = 4; // Given names (not always 'first'). Includes middle names
+ 	repeated string prefix = 5; // Parts that come before the name
+ 	repeated string suffix = 6; // Parts that come after the name
+ 	Period period = 7; // Time period when name was/is in use
+}
+
+message Address {
+
+ 	/*
+ 	An address expressed using postal conventions (as opposed to GPS or other location definition formats). 
+ 	This data type may be used to convey addresses for use in delivering mail as well as for visiting locations which might not be valid for mail delivery. 
+ 	There are a variety of postal address formats defined around the world.
+ 	*/
+
+ 	enum ADCode {
+ 		HOME = 0
+ 		WORK = 1;
+ 		TEMP = 2;
+ 		OLD = 3;
+ 	}
+
+ 	ADCode code = 1; // home | work | temp | old - purpose of this address
+ 	string type = 2; // postal | physical | both
+ 	string text = 3; // Text representation of the address
+ 	repeated string line = 4; // Street name, number, direction & P.O. Box etc.
+ 	string city = 5; // Name of city, town etc.
+ 	string district = 6; // District name (aka county)
+ 	string state = 7; // Sub-unit of country (abbreviations ok)
+ 	string postalCode = 8; // Postal code for area
+ 	string country = 9; // Country (e.g. can be ISO 3166 2 or 3 letter code)
+ 	Period period = 10; // Time period when address was/is in use
+}
+
+message ContactPoint {
+
+ 	/*
+ 	Details for all kinds of technology-mediated contact points for a person or organization, including telephone, email, etc.
+ 	*/
+
+ 	enum CPSystem {
+ 		PHONE = 0;
+ 		FAX = 1;
+ 		EMAIL = 2;
+ 		PAGER = 3;
+ 		URL = 4;
+ 		SMS = 5;
+ 		OTHER = 6;
+ 	}
+
+ 	enum CPUse {
+ 		HOME = 0
+ 		WORK = 1;
+ 		TEMP = 2;
+ 		OLD = 3;
+ 		MOBILE = 4;
+ 	}
+
+ 	CPSystem system = 1; // phone | fax | email | pager | url | sms | other
+ 	string value = 2; // The actual contact point details
+ 	CPUse use = 3; // home | work | temp | old | mobile - purpose of this contact point
+ 	uint64 rank = 4; // Specify preferred order of use (1 = highest)
+ 	Period period = 5; // Time period when the contact point was/is in use
+}
+
+message Timing {
+
+ 	/*
+ 	Specifies an event that may occur multiple times. Timing schedules are used for specifying when events are expected or requested to occur, and may also be used to represent a schedule 
+ 	that was followed for past events. A Timing schedule can be a list of events and/or criteria for when the event happens, which can be expressed in a structured form and/or as a code. 
+ 	When both event and a repeating specification are provided, the list of events should be understood as an interpretation of the information in the repeat structure.
+ 	*/
+
+ 	enum TMDurationUnit {
+ 		SEC = 0;
+ 		MIN = 1;
+ 		HOUR = 2;
+ 		DAY = 3;
+ 		WEEK = 4;
+ 		MONTH = 5;
+ 		YEAR = 6;
+ 	}
+
+ 	enum TMDayOfWeek {
+ 		MON = 0;
+ 		TUE = 1;
+ 		WED = 2;
+ 		THU = 3;
+ 		FRI = 4;
+ 		SAT = 5;
+ 		SUN = 6;
+ 	}
+
+ 	enum TMCodeableConcept {
+ 		BID = 0;
+ 		TID = 1;
+ 		QID = 2;
+ 		AM = 3;
+ 		PM = 4;
+ 		QD = 5;
+ 		QOD = 6;
+ 		Q4H = 7;
+ 		Q6H_PLUS = 8;
+ 	}
+
+ 	Timestamp event = 1; // When the event occurs
+ 	Quantity boundsDuration = 2; // Length/Range of lengths, or (Start and/or end) limits
+ 	Period boundsRange = 3;
+ 	Period boundsPeriod = 4;
+ 	uint64 count = 5; // Number of times to repeat
+ 	uint64 countMax = 6; // Maximum number of times to repeat
+ 	float duration = 7; // How long when it happens
+ 	float durationMax = 8; // How long when it happens (Max)
+ 	TMDurationUnit durationUnit = 9; // s | min | h | d | wk | mo | a - unit of time (UCUM)
+ 	uint64 frequency = 10; // Event occurs frequency times per period
+ 	uint64 frequencyMax = 11; // Event occurs up to frequencyMax times per period
+ 	float period = 12; // Event occurs frequency times per period
+ 	float periodMax = 13; // Upper limit of period (3-4 hours)
+ 	TMDurationUnit periodUnit = 14; // s | min | h | d | wk | mo | a - unit of time (UCUM)
+ 	TMDayOfWeek dayOfWeek = 15; // mon | tue | wed | thu | fri | sat | sun
+ 	Period timeOfDay = 16; // Time of day for action 
+ 	string when = 17; // Regular life events the event is tied to EventTiming 
+ 	uint64 offset = 18; // Minutes from event (before or after)
+ 	TMCodeableConcept code = 19; // BID | TID | QID | AM | PM | QD | QOD | Q4H | Q6H +
+}
+
+message Signature {
+ 	
+ 	/*
+ 	A Signature holds an electronic representation of a signature and its supporting context in a FHIR accessible form. The signature may either be a cryptographic type (XML DigSig or a JWT), 
+ 	which is able to provide non-repudiation proof, or it may be a graphical image that represents a signature or a signature process.
+ 	*/
+
+ 	Coding type = 1; // Indication of the reason the entity signed the object(s)
+ 	Timestamp when = 2; // When the signature was created
+ 	string whoUri = 3; // Who signed
+ 	Reference whoReference = 4;
+ 	string onBehalfOfUri = 5; // The party represented
+ 	Reference onBehalfOfReference = 6;
+ 	string contentType = 7; // // The technical format of the signature
+ 	string blob = 8; // The actual signature content (XML DigSig. JWT, picture, etc.)
+}
+
+message Annotation {
+
+ 	/*
+ 	A text note which also contains information about who made the statement and when.
+ 	*/
+
+ 	Reference authorReference = 1;
+ 	string authorString = 2;
+ 	Timestamp time = 3; // When the annotation was made
+ 	string text = 4; // The annotation - text content
+}
+
+// Metadata Types
+
+message ContactDetail {
+
+ 	/*
+ 	The ContactDetail structure defines general contact details.
+ 	*/
+
+	string name = 1; // Name of an individual to contact
+	ContactPoint telecom = 2; // Contact details for individual or organization
+}
+
+message Contributor {
+
+	/*
+	Contributor information
+	*/
+
+	enum CBType {
+		AUTHOR = 0;
+		EDITOR = 1;
+		REVIEWER = 2;
+		ENDORSER = 3;
+	}
+
+	CBType type = 1; // author | editor | reviewer | endorser
+	string name = 2; // Who contributed the content
+	ContactDetail contact = 3; // Contact details of the contributor
+}
+
+message DataRequirement {
+
+	/*
+	The DataRequirement structure defines a general data requirement for a knowledge asset such as a decision support rule or quality measure.
+	*/
+
+	string type = 1; // The type of the required data
+	string profile = 2; // The profile of the required data
+	string mustSupport = 3; // Indicates that specific structure elements are referenced by the knowledge module
+	string codePath = 4; // The code-valued attribute of the filter
+	string valueSetString = 5; // Valueset for the filter
+	Reference valueSetReference = 6;
+	string valueCode = 7; // What code is expected
+	Coding valueCoding = 8; // What Coding is expected
+	CodeableConcept valueCodeableConcept = 9; // What CodeableConcept is expected
+	string datePath = 10; // The date-valued attribute of the filter
+	Timestamp valueDateTime = 11; // The value of the filter, as a Period, DateTime, or Duration value
+	Period valuePeriod = 12;
+	Quantity valueDuration = 13;
+}
+
+message ParameterDefinition {
+
+	/*
+	The ParameterDefinition structure defines a parameter to a knowledge asset such as a decision support rule or quality measure.
+	Parameters are typically used to communicate patient-independent information such as configuration values, 
+	whereas DataRequirements are typically used to communicate patient-dependent information such as MedicationStatements and Encounters.
+	*/
+
+	enum PDUse {
+		IN = 0;
+		OUT = 1;
+	}
+
+	string name = 1; // Name used to access the parameter value
+	PDUse use = 2; // in | out
+	int64 min = 3; // Minimum cardinality
+	int64 max = 4; // Maximum cardinality
+	string documentation = 5; // A brief description of the parameter
+	string type = 6; // What type of value
+	Reference profile = 7; // What profile the value is expected to be
+}
+
+message RelatedArtifact {
+
+	/*
+	The RelatedArtifact structure defines resources related to a module such as previous and next versions of documents,
+	documentation, citations, etc. Note that the name resource here is being used in a more general sense than the FHIR-specific Resource.
+	The related resource may be a FHIR resource, or it may be another type of resource, represented using the Attachment data type.
+	*/
+
+	enum RAName {
+		DOCUMENTATION = 0;
+		JUSTIFICATION = 1;
+		CITATION = 2;
+		PREDECESSOR = 3;
+		SUCESSOR = 4;
+		DERIVED_FROM = 5;
+		DEPENDS_ON = 6;
+		COMPOSED_OF = 7;
+	}
+
+	RAName name = 1; // documentation | justification | citation | predecessor | successor | derived-from | depends-on | composed-of
+	string display = 2; // Brief description of the related artifact
+	string citation = 3; // Bibliographic citation for the artifact
+	string url = 4; // Where the artifact can be accessed
+	Attachment document = 5; // What document is being referenced
+	Reference resource = 6; // What resource is being referenced
+}
+
+message TriggerDefinition {
+
+	/*
+	The TriggerDefinition structure defines when a knowledge artifact is expected to be evaluated. The structure can represent three main kinds of triggering events:
+	- Named Event
+	- Scheduled Event
+	- Data Event
+	A named event is an event identified by the implementation environment. This allows any event generated within the implementation environment
+ 	to be used as a trigger, but it requires pre-coordination of the names involved with the consuming environments.
+	*/
+
+	enum TDType {
+		NAMED_EVENT = 0;
+		PERIODIC = 1;
+		DATA_ADDED = 2;
+		DATA_MODIFIED = 3;
+		DATA_REMOVED = 4;
+		DATA_ACCESSED = 5;
+		DATA_ACCESSED_ENDED = 6;
+	}
+
+	TDType type = 1; // named-event | periodic | data-added | data-modified | data-removed | data-accessed | data-access-ended
+	string eventName = 2; // Triggering event name
+	Timing eventTimingTiming = 3; // Timing of the event
+	Reference eventTimingReference = 4;
+	Timestamp eventTimingDate = 5;
+	Timestamp eventTimingDateTime = 6;
+	DataRequirement eventData = 7; // Triggering data of the event
+}
+
+message UsageContext {
+
+	/*
+	The UsageContext structure defines the context of use for a module.
+	*/
+
+	Coding code = 1; // Type of context being specified
+	CodeableConcept valueCodeableConcept = 2; // // Value that defines the context
+	Quantity valueQuantity = 3;
+	Range valueRange = 4;
+}

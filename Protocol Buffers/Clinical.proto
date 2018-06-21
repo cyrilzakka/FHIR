@@ -1,0 +1,485 @@
+syntax = "proto3";
+
+package clinical;
+
+import "Foundation.proto";
+import "google/protobuf/timestamp.proto";
+
+message AllergyIntolerance {
+
+	/*
+	The allergy/intolerance list exists as a patient safety tool to inform decision support around ordering of medications and nutrition and to guide clinical treatment. 
+	Other reactions triggered by physical stimuli -- light, heat, cold, pressure, vibration, which may mimic allergic or intolerance reactions, should be recorded as 
+	Condition on the problem list, not using AllergyIntolerance.
+	*/
+
+	message Reaction {
+		CodeableConcept substance = 1; // Specific substance or pharmaceutical product considered to be responsible for event
+		CodeableConcept manifestation = 2; // Clinical symptoms/signs associated with the Event
+		string description = 3; // Description of the event as a whole
+		Timestamp onset = 4; // Date(/time) when manifestations showed
+		string severity = 5; // mild | moderate | severe (of event as a whole)
+		CodeableConcept exposureRoute = 6; // How the subject was exposed to the substance
+		Annotation note = 7; // Text about event not captured in other fields
+	}
+
+	Identifier identifier = 1; // External ids for this item
+	string clinicalStatus = 2; // active | inactive | resolved
+	string verificationStatus = 3; // unconfirmed | confirmed | refuted | entered-in-error
+	string type = 4; // allergy | intolerance - Underlying mechanism (if known)
+	string category = 5; // food | medication | environment | biologic
+	string criticality = 6; // low | high | unable-to-assess
+	CodeableConcept code = 7; // Code that identifies the allergy or intolerance
+	Reference patient = 8; // Who the sensitivity is for
+	Timestamp onsetDateTime = 9; // When allergy or intolerance was identified
+	Quantity onsetAge = 10;
+	Period onsetPeriod = 11;
+	Range onsetRange = 12;
+	string onsetString = 13; // Date record was believed accurate
+	Timestamp assertedDate = 14; // Who recorded the sensitivity
+	Reference recorder = 15; // Source of the information about the allergy
+	Reference asserter = 16; // Date(/time) of last known occurrence of a reaction
+	Timestamp lastOccurence = 17;
+	Annotation note = 18; // Additional text not captured in other fields
+	Reaction reaction = 19; // Adverse Reaction Events linked to exposure to substance
+}
+
+message Condition {
+
+	/*
+	This resource is used to record detailed information about a condition, problem, diagnosis, or other event, situation, issue, or clinical concept that has risen to a level of concern. 
+	The condition could be a point in time diagnosis in context of an encounter, it could be an item on the practitioner’s Problem List, or it could be a concern that doesn’t exist on the practitioner’s Problem List. 
+	Often times, a condition is about a clinician's assessment and assertion of a particular aspect of a patient's state of health. It can be used to record information about a disease/illness identified from application
+	 of clinical reasoning over the pathologic and pathophysiologic findings (diagnosis), or identification of health issues/situations that a practitioner considers harmful, potentially harmful and may be investigated and 
+	 managed (problem), or other health issue/situation that may require ongoing monitoring and/or management (health issue/concern).
+
+	The condition resource may be used to record a certain health state of a patient which does not normally present a negative outcome, e.g. pregnancy. The condition resource may be used to record a condition following a 
+	procedure, such as the condition of Amputee-BKA following an amputation procedure.
+
+	While conditions are frequently a result of a clinician's assessment and assertion of a particular aspect of a patient's state of health, conditions can also be expressed by the patient, related person, or any care team member. 
+	A clinician may have a concern about a patient condition (e.g. anorexia) that the patient is not concerned about. Likewise, the patient may have a condition (e.g. hair loss) that does not rise to the level of importance such that
+	it belongs on a practitioner’s Problem List.
+	*/
+
+	message Stage {
+		CodeableConcept summary = 1; // Simple summary (disease specific)
+		Reference assessment = 2; // Formal record of assessment
+	}
+
+	message Evidence {
+		CodeableConcept code = 1; // Manifestation/symptom
+		Reference detail = 2; // Supporting information found elsewhere
+	}
+
+	Identifier identifier = 1; // External Ids for this condition
+	string clinicalStatus = 2; // active | recurrence | inactive | remission | resolved
+	string verificationStatus = 3; // provisional | differential | confirmed | refuted | entered-in-error | unknown
+	CodeableConcept category = 4; // problem-list-item | encounter-diagnosis
+	CodeableConcept severity = 5; // Subjective severity of condition
+	CodeableConcept code = 6; // Identification of the condition, problem or diagnosis
+	CodeableConcept bodySite = 7; // Anatomical location, if relevant
+	Reference subject = 8; // Who has the condition?
+	Reference context = 9; // Encounter or episode when condition first asserted
+	Timestamp onsetDateTime = 10; // Estimated or actual date, date-time, or age
+	Quantity onsetAge = 11;
+	Period onsetPeriod = 12;
+	Range onsetRange = 13;
+	string onsetString = 14;
+	Timestamp abatementTime = 15; // If/when in resolution/remission
+	Quantity abatementAge = 16;
+	bool abatementBoolean = 17;
+	Period abatementPeriod = 18;
+	Range abatementRange = 19;
+	string abatementString = 20;
+	Timestamp assertedDate = 21; // Date record was believed accurate
+	Reference asserter = 22; // Person who asserts this condition
+	Stage stage = 23; // Stage/grade, usually assessed formally
+	Evidence evidence = 24; // Supporting evidence
+	Annotation note = 25; // Additional information about the Condition
+}
+
+message Procedure {
+
+	/*
+	This resource is used to record the details of procedures performed on a patient. A procedure is an activity that is performed with or on a patient as part of the provision of care. Examples include surgical procedures,
+	diagnostic procedures, endoscopic procedures, biopsies, counseling, physiotherapy, exercise, etc. Procedures may be performed by a healthcare professional, a friend or relative or in some cases by the patient themselves.
+	*/
+
+	message FocalDevice {
+		CodeableConcept action = 1; // Kind of change to device
+		Reference manipulated = 2; // Device that was changed
+	}
+
+	message Performer {
+		CodeableConcept role = 1; // The role the actor was in
+		Reference actor = 2; // The reference to the practitioner
+		Reference onBehalfOf = 3; // Organization the device or practitioner was acting for
+	}
+
+	Identifier identifier = 1; // External Identifiers for this procedure
+	Reference definition = 2; // Instantiates protocol or definition
+	Reference basedOn = 3; // A request for this procedure
+	Reference partOf = 4; // Part of referenced event
+	string status = 5; // preparation | in-progress | suspended | aborted | completed | entered-in-error | unknown
+	bool notDone = 6; // True if procedure was not performed as scheduled
+	CodeableConcept notDoneReason = 7; // Reason procedure was not performed
+	CodeableConcept category = 8; // Classification of the procedure
+	CodeableConcept code = 9; // Identification of the procedure
+	Reference subject = 10; // Who the procedure was performed on
+	Reference context = 11; // Encounter or episode associated with the procedure
+	Timestamp performedDateTime = 12; // Date/Period the procedure was performed
+	Period performedPeriod = 13;
+	repeated Performer performer = 14; // The people who performed the procedure
+	Reference location = 15; // Where the procedure happened
+	CodeableConcept reasonCode = 16; // Coded reason procedure performed
+	Reference reasonReference = 17; // Condition that is the reason the procedure performed
+	repeated CodeableConcept bodySite = 18; // Target body sites
+	CodeableConcept outcome = 19; // The result of procedure
+	Reference report = 20; // Any report resulting from the procedure
+	CodeableConcept complication = 21; // Complication following the procedure
+	Reference complicationDetail = 22; // A condition that is a result of the procedure
+	CodeableConcept followUp = 23; // Instructions for follow up
+	Annotation note = 24; // Additional information about the procedure
+	FocalDevice focalDevice = 25; // Device changed in procedure
+	repeated Reference usedReference = 26; // Items used during procedure
+	CodeableConcept usedCode = 27; // Coded items used during the procedure
+}
+
+message FamilyMemberHistory {
+
+	/*
+	FamilyMemberHistory is one of the event resources in the FHIR workflow specification.
+
+	This resource records significant health events and conditions for a particular individual related to the subject. This information can be known to different levels of accuracy. Sometimes the exact condition ('asthma') is known,
+	and sometimes it is less precise ('some sort of cancer'). Equally, sometimes the person can be identified ('my aunt Agatha') and sometimes all that is known is that the person was an uncle.
+
+	This resource represents a simple structure used to capture an 'elementary' family history for a particular family member. However, it can also be the basis for capturing a more rigorous history useful for genetic and other analysis
+	*/
+
+	message FamilyCondition {
+		CodeableConcept code = 1; // Condition suffered by relation
+		CodeableConcept outcome = 2; // deceased | permanent disability | etc.
+		Quantity onsetAge = 3; // When condition first manifested
+		Range onsetRange = 4;
+		Perid onsetPeriod = 5;
+		string onsetString = 6;
+		Annotation note = 7; // Extra information about condition
+	}
+
+	Identifier identifier = 1; // External Id(s) for this record
+	Reference definition = 2; // Instantiates protocol or definition
+	string status = 3; // partial | completed | entered-in-error | health-unknown
+	bool notDone = 4; // The taking of a family member's history did not occur
+	CodeableConcept notDoneReason = 5; // subject-unknown | withheld | unable-to-obtain | deferred
+	Reference patient = 6; // Patient history is about
+	Timestamp date = 7; // When history was captured/updated
+	string name = 8; // The family member described
+	CodeableConcept relationship = 9; // Relationship to the subject
+	string gender = 10; // male | female | other | unknown
+	Period bornPeriod = 11; // (approximate) date of birth
+	Timestamp bornDate = 12;
+	string bornString = 13;
+	Quantity ageAge = 14; // 	(approximate) age
+	Range ageRange = 15;
+	string ageString = 16;
+	bool estimatedAge = 17; // Age is estimated?
+	bool deceasedBoolean = 18; // Dead? How old/when?
+	Quantity deceasedAge = 19;
+	Range deceasedRange = 20;
+	Timestamp deceasedDate = 21;
+	string deceasedString = 22;
+	CodeableConcept reasonCode = 23; // Why was family member history performed?
+	Reference reasonReference = 24; // Why was family member history performed?
+	Annotation note = 25; // General note about related person
+	FamilyCondition condition = 26; // Condition that the related person had
+}
+
+message CarePlan {
+
+	/*
+	Care Plans are used in many areas of healthcare with a variety of scopes. They can be as simple as a general practitioner keeping track of when their patient is next due for a tetanus
+	immunization through to a detailed plan for an oncology patient covering diet, chemotherapy, radiation, lab work and counseling with detailed timing relationships, pre-conditions and goals. 
+	They may be used in veterinary care or clinical research to describe the care of a herd or other collection of animals. In public health, they may describe education or immunization campaigns.
+
+	This resource takes an intermediate approach to complexity. It captures basic details about who is involved and what actions are intended without dealing in discrete data about dependencies and timing relationships. These can be supported where necessary using the extension mechanism.
+	*/
+
+	message Activity {
+
+		message Detail {
+			CodeableConcept category = 1; // diet | drug | encounter | observation | procedure | supply | other
+			Reference definition = 2; // Protocol or definition
+			CodeableConcept code = 3; // Detail type of activity
+			CodeableConcept reasonCode = 4; // Why activity should be done or why activity was prohibited
+			Reference reasonReference = 5; // Condition triggering need for activity
+			Reference goal = 6; // Goals this activity relates to
+			string status = 7; // not-started | scheduled | in-progress | on-hold | completed | cancelled | unknown
+			string statusReason = 8; // Reason for current status
+			bool prohibited = 9; // Do NOT do
+			Timing scheduledTiming = 10; // When activity is to occur
+			Period scheduledPeriod = 11;
+			string scheduledString = 12;
+			Reference location = 13; // Where it should happen
+			Reference performer = 14; // Who will be responsible?
+			CodeableConcept productCodeableConcept = 15; // // What is to be administered/supplied
+			Reference productReference = 16; 
+			Quantity dailyAmount = 17; // How to consume/day?
+			Quantity quantity = 18; // How much to administer/supply/consume
+			string description = 19; // Extra info describing activity to perform
+
+		}
+
+		CodeableConcept outcomeCodeableConcept = 1; // Results of the activity
+		Reference outcomeReference = 2; // Appointment, Encounter, Procedure, etc.
+		Annotation progress = 3; // Comments about the activity status/progress
+		Reference reference = 4; // Activity details defined in specific resource
+		Detail detail = 5; // In-line definition of activity
+	}
+
+	Identifier identifier = 1; // External Ids for this plan
+	Reference definition = 2; // Protocol or definition
+	Reference basedOn = 3; // Fulfills care plan
+	Reference replaces = 4; // CarePlan replaced by this CarePlan
+	Reference partOf = 5; // Part of referenced CarePlan
+	string status = 6; // draft | active | suspended | completed | entered-in-error | cancelled | unknown
+	string intent = 7; // proposal | plan | order | option
+	CodeableConcept category = 8; // Type of plan
+	string title = 9; // Human-friendly name for the CarePlan
+	string description = 10; // Summary of nature of plan
+	Reference subject = 11; // Who care plan is for
+	Reference context = 12; // Created in context of
+	Period period = 13; // Time period plan covers
+	Reference author = 14; // Who is responsible for contents of the plan
+	Reference careTeam = 15; // Who's involved in plan?
+	Reference addresses = 16; // Health issues this plan addresses
+	Reference supportingInfo = 17; // Information considered as part of plan
+	Reference goal = 18; // Desired outcome of plan
+	Activity activity = 20; // Action to occur as part of plan
+	Annotation note = 21; // Comments about the plan
+}
+
+message DetectedIssue {
+
+	/*
+	This resource applies to various circumstances where there is a concern about an existing or proposed set of clinical activity. 
+	The issue could relate to single, proposed, or multiple actions. It does not apply to technical issues (e.g. lack of user permissions) 
+	but could relate to violation of patient consent limitations. Examples include:
+
+	- Drug-drug interactions
+	- Inappropriate therapy (wrong dose, frequency, body site)
+	- Duplicate therapy
+	*/
+
+	message Mitigation {
+		CodeableConcept action = 1; // What mitigation?
+		Timestamp date = 2; // Date committed
+		Reference author = 3; // Who is committing?
+	}
+
+	Identifier identifier = 1; // Unique id for the detected issue
+	string status = 2; // registered | preliminary | final | amended +
+	CodeableConcept category = 3; // Issue Category, e.g. drug-drug, duplicate therapy, etc.
+	string severity = 4; // high | moderate | low
+	Reference patient = 5; // Associated patient
+	Timestamp date = 6; // When identified
+	Reference author = 7; // The provider or device that identified the issue
+	Reference implicated = 8; // Problem resource
+	string detail = 9; // Description and context
+	string reference = 10; // Authority for issue
+	Mitigation mitigation = 11; // Step taken to address
+}
+
+message RiskAssessment {
+
+	/*
+	This resource captures predicted outcomes for a patient or population on the basis of source information. Examples include:
+
+	- A prognosis statement for a particular condition
+	- Risk of health outcome (heart attack, particular type of cancer) on the basis of lifestyle factors and/or family history
+	- List of potential health risks based on a patient's genetic analysis
+	- A prediction of outbreak infection rates within a geography based on immunization rates
+	
+	This resource can be used to represent the results of formal scoring/decision support tools that evaluate risk. It can also be used to capture a practitioner's
+	subjective assessment of the patient's risk based on existing knowledge and previous experience.
+	*/
+
+	message Prediction {
+		CodeableConcept outcome = 1; // Possible outcome for the subject
+		float probabilityDecimal = 2; // Likelihood of specified outcome
+		Range probabilityRange = 3;
+		CodeableConcept qualitativeRisk = 4; // Likelihood of specified outcome as a qualitative value
+		float relativeRisk = 5; // Relative likelihood
+		Period whenPeriod = 6; // Timeframe or age range 
+		Range whenRange = 7;
+		string rationale = 8; // Explanation of prediction
+	}
+
+	Identifier identifier = 1; // Unique identifier for the assessment
+	Reference basedOn = 2; // Request fulfilled by this assessment
+	Reference parent = 3; // Part of this occurrence
+	string status = 4; // registered | preliminary | final | amended +
+	CodeableConcept method = 5; // Evaluation mechanism
+	CodeableConcept code = 6; // Type of assessment
+	Reference subject = 7; // Who/what does assessment apply to?
+	Reference context = 8; // Where was assessment performed?
+	Timestamp occurrenceDateTime = 9; // When was assessment made?
+	Period occurrencePeriod = 10;
+	Reference condition = 11; // Condition assessed
+	Reference performer = 12; // Who did assessment?
+	CodeableConcept reasonCodeableConcept = 13; // Why the assessment was necessary?
+	Reference reasonReference = 14; // 
+	Reference basis = 15; // Information used in assessment
+	Prediction prediction = 16; // Outcome predicted
+	string mitigation = 17; // How to reduce risk
+	string comment = 18; // Comments on the risk assessment
+}
+
+message AdverseEvent {
+
+	/*
+	This resource applies to events that occur during the course of medical care or medical research which may impact an individual as the recipient of care or the participant
+	in a research study. There are also events that occur within a care setting that may or may not impact an individual but had the potential to cause an adverse event. 
+	Health care organizations monitor and report both adverse events as well as events that had the potential to cause patient harm. Data are often aggregated for reporting purposes.
+	*/
+
+	message SuspectEntity {
+		Reference instance = 1; // Refers to the specific entity that caused the adverse event
+		string causality = 2; // causality1 | causality2
+		CodeableConcept causalityAssessment = 3; // assess1 | assess2
+		string causalityProductRelatedness = 4; // AdverseEvent.suspectEntity.causalityProductRelatedness
+		CodeableConcept causalityMethod = 5; // method1 | method2
+		Reference causalityAuthor = 6; // AdverseEvent.suspectEntity.causalityAuthor
+		CodeableConcept causalityResult = 7; // result1 | result2
+	}
+
+	Identifier identifier = 1; // Business identifier for the event
+	string category = 2; // AE | PAE An adverse event is an event that caused harm to a patient, an adverse reaction is a something that is a subject-specific event that is a result of an exposure to a medication, food, device or environmental substance, a potential adverse event is something that occurred and that could have caused harm to a patient but did not
+	CodeableConcept type = 3; // actual | potential
+	Reference subject = 4; // Subject or group impacted by event
+	Timestamp date = 5; // When the event occurred
+	Reference reaction = 6; // Adverse Reaction Events linked to exposure to substance
+	Reference location = 7; // Location where adverse event occurred
+	CodeableConcept seriousness = 8; // Mild | Moderate | Severe
+	CodeableConcept outcome = 9; // resolved | recovering | ongoing | resolvedWithSequelae | fatal | unknown
+	Reference recorder = 10; // Who recorded the adverse event
+	Reference eventParticipant = 11; // Who was involved in the adverse event or the potential adverse event
+	string description = 12; // Description of the adverse event
+	SuspectEntity suspectEntity = 13; // The suspected agent causing the adverse event
+	Reference subjectMedicalHistory = 14; // AdverseEvent.subjectMedicalHistory
+	Reference referenceDocument = 15; // AdverseEvent.referenceDocument
+	Reference study = 16; // AdverseEvent.study
+}
+
+message Goal {
+
+	/*
+	A Goal in health care services delivery is generally an expressed desired health state to be achieved by a subject of care (or family/group) over a period or at a specific point of time. 
+	This desired target health state may be achieved as a result of health care intervention(s) or resulting from natural recovery over time. For example:
+
+	- A goal of a plan for a condition such as a diabetes might specify desired outcome(s) (e.g. HgbA1c level =<5.6% in 3 months) as a result of interventions such as medication therapy, 
+	nutritional management and/or increase physical activity.
+	- A goal of a procedure might be to meet the intended objective of the procedure (e.g. wet-dry-dressing changes twice a day; goal: wound healed completely in 2 weeks) or to prevent 
+	an unintended complication (e.g. repositioning a patient every two hours: goal to maintain skin integrity)
+	
+	Goals may address the prevention of illness, cure or mitigation of a condition, prolongation of life, or mitigation of pain and discomfort.
+
+	When dealing with groups, goals may also reflect health state, such as a reduction of addiction behaviors. However, they may also reflect population health objectives such as education, screening, etc.
+	*/
+
+	message Target {
+		CodeableConcept measure = 1; // The parameter whose value is being tracked
+		Quantity detailQuantity = 2; // The target value to be achieved
+		Range detailRange = 3;
+		CodeableConcept detailCodeableConcept = 4;
+		Timestamp dueDate = 5; // Reach goal on or before
+		Quantity dueDuration = 6;
+	}
+
+	Identifier identifier = 1; // External Ids for this goal
+	string status = 2; // proposed | accepted | planned | in-progress | on-target | ahead-of-target | behind-target | sustaining | achieved | on-hold | cancelled | entered-in-error | rejected
+	CodeableConcept category = 3; // E.g. Treatment, dietary, behavioral, etc.
+	CodeableConcept priority = 4; // high-priority | medium-priority | low-priority
+	CodeableConcept description = 5; // Code or text describing goal
+	Reference subject = 6; // Who this goal is intended for
+	Timestamp startDate = 7; // When goal pursuit begins
+	CodeableConcept startCodeableConcept = 8; 
+	Target target = 9; // // Target outcome for the goal
+	Timestamp statusDate = 10; // When goal status took effect
+	string statusReason = 11; // Reason for current status
+	Reference expressedBy = 12; // Who's responsible for creating Goal?
+	Reference addresses = 13; // Issues addressed by this goal
+	Annotation note = 14; // Comments about the goal
+	CodeableConcept outcomeCode = 15; // What result was achieved regarding the goal?
+	Reference outcomeReference = 16; // Observation that resulted from goal
+}
+
+message CareTeam {
+
+	/*
+	The Care Team resource includes all the people and/or organizations who plan to participate in the coordination and delivery of care for a patient. This is not limited to practitioners, 
+	but may include other caregivers such as family members, guardians, the patient themself, or others. The Care Team, depending on where used, may include care team members specific to a 
+	particular care plan, an episode, an encounter, or may reflect all known team members across these perspectives.
+	*/
+
+	message Participant {
+		CodeableConcept role = 1; // Type of involvement
+		Reference member = 2; // Who is involved
+		Reference onBehalfOf = 3; // Organization of the practitioner
+		Period period = 4; // Time period of participant
+	}
+
+	Identifier identifier = 1; // External Ids for this team
+	string status = 2; // proposed | active | suspended | inactive | entered-in-error
+	CodeableConcept category = 3; // Type of team
+	string name = 4; // Name of the team, such as crisis assessment team
+	Reference subject = 5; // Who care team is for
+	Reference context = 6; // Encounter or episode associated with CareTeam
+	Period period = 7; // Time period team covers
+	Participant participant = 8; // Members of the team
+	CodeableConcept reasonCode = 9; // Why the care team exists
+	Reference reasonReference = 10; // Why the care team exists
+	Reference managingOrganization = 11; // Organization responsible for the care team
+	Annotation note = 12; // Comments made about the CareTeam
+}
+
+message ClinicalImpression {
+
+	/*
+	Performing a clinical assessment is a fundamental part of a clinician's workflow, performed repeatedly throughout the day. In spite of this - or perhaps, because of it - 
+	there is wide variance in how clinical impressions are recorded. Some clinical assessments simply result in an impression recorded as a single text note in the patient 'record' 
+	(e.g. "Progress satisfactory, continue with treatment"), while others are associated with careful, detailed record keeping of the evidence gathered and the reasoning leading to a 
+	differential diagnosis, and there is a continuum between these. This resource is intended to be used to cover all these use cases.
+	*/
+
+	message Finding {
+		CodeableConcept itemCodeableConcept = 1; // What was found
+		Reference itemReference = 2;
+		string basis = 3; // Which investigations support finding
+	}
+
+	message Investigation {
+		CodeableConcept code = 1; // A name/code for the set
+		Reference item = 2; // Record of a specific investigation
+	}
+
+	Identifier identifier = 1; // Business identifier
+	string status = 2; // draft | completed | entered-in-error
+	CodeableConcept code = 3; // Kind of assessment performed
+	string description = 4; // Why/how the assessment was performed
+	Reference subject = 5; // Patient or group assessed
+	Reference context = 6; // Encounter or Episode created from
+	Timestamp effectiveDateTime = 7; // Time of assessment
+	Period effectivePeriod = 8;
+	Timestamp date = 9; // When the assessment was documented
+	Reference assessor = 10; // The clinician performing the assessment
+	Reference previous = 11; // Reference to last assessment
+	Reference problem = 12; // Relevant impressions of patient state
+	Investigation investigation = 13; // One or more sets of investigations (signs, symptions, etc.)
+	string protocol = 14; // Clinical Protocol followed
+	string summary = 15; // Summary of the assessment
+	Finding finding = 16; // Possible or likely findings and diagnoses
+	CodeableConcept prognosisCodeableConcept = 17; // Estimate of likely outcome
+	Reference prognosisReference = 18; // RiskAssessment expressing likely outcome
+	Reference action = 19; // Action taken as part of assessment procedure
+	Annotation note = 20; // Comments made about the ClinicalImpression
+}

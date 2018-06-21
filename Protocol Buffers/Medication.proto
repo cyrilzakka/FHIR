@@ -1,0 +1,357 @@
+syntax = "proto3";
+
+package medication;
+
+import "Foundation.proto";
+import "google/protobuf/timestamp.proto";
+
+message Dosage {
+
+	/*
+	The Dosage structure defines general dosage instruction information typically represented in medication requests, medication dispenses and medication statements.
+	*/
+
+	int64 sequence = 1; // The order of the dosage instructions
+	string text = 2; // Free text dosage instructions e.g. SIG
+	CodeableConcept additionalInstruction = 3; // Supplemental instruction - e.g. "with meals"
+	string patientInstruction = 4; // Patient or consumer oriented 
+	Timing timing = 5; // When medication should be administered
+	bool asNeededBoolean = 6; // Take "as needed" (for x)
+	CodeableConcept asNeededCodeableConcept = 7;
+	CodeableConcept site = 8; // Body site to administer to
+	CodeableConcept route = 9; // How drug should enter body
+	CodeableConcept method = 10; // Technique for administering medication
+	Range doseRange = 11; // Amount of medication per dose
+	Quantity doseQuantity = 12;
+	Ratio maxDosePeriod = 13; // Upper limit on medication per unit of time
+	Quantity maxDosePerAdministration = 14; // Upper limit on medication per administration
+	Quantity maxDosePerLifetime = 15; // Upper limit on medication per lifetime of the patient
+	Ratio rateRatio = 16; // 	Amount of medication per unit of time
+	Range rateRange = 17;
+	Quantity rateQuantity = 18;
+}
+
+message MedicationRequest {
+
+	/*
+	This resource covers all orders for medications for a patient. This includes in-patient medication orders as well as community orders (whether filled by the prescriber or by a pharmacy). 
+	It also includes orders for over-the-counter medications (e.g. Aspirin), total parenteral nutrition and diet/ vitamin supplements. It may be used to support the order of medication-related devices. 
+	It is not intended for use in prescribing particular diets, or for ordering non-medication-related items (eye-glasses, supplies, etc.)
+	*/
+
+	message Requester {
+		Reference agent = 1; // Who ordered the initial medication(s)
+		Reference onBehalfOf = 2; // Organization agent is acting for
+	}
+
+	message DispenseRequest {
+		Period validityPeriod = 1; // Time period supply is authorized for
+		uint64 numberOfRepeatsAllowed = 2; // Number of refills authorized
+		Quantity quantity = 3; // Amount of medication to supply per dispense
+		Quantity expectedSupplyDuration = 4; // Number of days supply per dispense
+		Reference performer = 5; // Intended dispenser
+	}
+
+	message MRSubstitution {
+		bool allowed = 1; // Whether substitution is allowed or not
+		CodeableConcept reason = 2; // Why should (not) substitution be made
+	}
+
+	Identifier identifier = 1; // External ids for this request
+	Reference definition = 2; // Protocol or definition
+	Reference basedOn = 3; // What request fulfills
+	Identifier groupIdentifier = 4; // Composite request this is part of
+	string status = 5; // active | on-hold | cancelled | completed | entered-in-error | stopped | draft | unknown
+	string intent = 6; // proposal | plan | order | instance-order
+	CodeableConcept category = 7; // Type of medication usage
+	string priority = 8; // routine | urgent | stat | asap
+	CodeableConcept medicationCodeableConcept = 9; // Medication to be taken
+	Reference medicationReference = 10;
+	Reference subject = 11; // Who or group medication request is for
+	Reference context = 12; // Created during encounter/admission/stay
+	Reference supportingInformation = 13; // Information to support ordering of the medication
+	Timestamp authoredOn = 14; // When request was initially authored
+	Requester requester = 15; // Who/What requested the Request
+	Reference recorder = 16; // Person who entered the request
+	CodeableConcept reasonCode = 17; // Reason or indication for writing the prescription
+	Reference reasonReference = 18; // Condition or Observation that supports why the prescription is being written
+	Annotation note = 19; // Information about the prescription
+	Dosage dosageInstruction = 20; // How the medication should be taken
+	DispenseRequest dispenseRequest = 21; // Medication supply authorization
+	MRSubstitution substitution = 22; // Any restrictions on medication substitution
+	Reference priorPrescription = 23; // An order/prescription that is being replaced
+	Reference detectedIssue = 24; // Clinical Issue with action
+	Reference eventHistory = 25; // A list of events of interest in the lifecycle
+}
+
+message MedicationDispense {
+
+	/*
+	This resource covers the supply of medications to a patient. Examples include dispensing and pick-up from an out-patient or community pharmacy, dispensing patient-specific medications
+	from in-patient pharmacy to ward, as well as issuing a single dose from ward stock to a patient for consumption. The medication dispense is the result of a pharmacy system responding to a medication order.
+	*/
+
+	message MDPerformer {
+		Reference actor = 1; // Individual who was performing
+		Reference onBehalfOf = 2
+	}
+
+	message MDSubstitution {
+		bool wasSubstituted = 1; // Whether a substitution was or was not performed on the dispense
+		CodeableConcept type = 2; // Code signifying whether a different drug was dispensed from what was prescribed
+		CodeableConcept reason = 3; // Why was substitution made
+		Reference responsibleParty = 4; // Who is responsible for the substitution
+	}
+
+	Identifier identifier = 1; // External identifier
+	Reference partOf = 2; // Event that dispense is part of
+	string status = 3; // preparation | in-progress | on-hold | completed | entered-in-error | stopped
+	CodeableConcept category = 4; // Type of medication dispense
+	CodeableConcept medicationCodeableConcept = 5; // What medication was supplied
+	Reference medicationReference = 6;
+	Reference subject = 7; // Who the dispense is for
+	Reference context = 8; // Encounter / Episode associated with event
+	Reference supportingInformation = 9; // Information that supports the dispensing of the medication
+	MDPerformer performer = 10; // Who performed event
+	Reference authorizingPrescription = 11; // Medication order that authorizes the dispense
+	CodeableConcept type = 12; // Trial fill, partial fill, emergency fill, etc.
+	Quantity quantity = 13; // Amount dispensed
+	Quantity daysSupply = 14; // Amount of medication expressed as a timing amount
+	Timestamp whenPrepared = 15; // When product was packaged and reviewed
+	Timestamp whenHandedOver = 16; // When product was given out
+	Reference destination = 17; // Where the medication was sent
+	Reference receiver = 18; // Who collected the medication
+	Annotation note = 19; // Information about the dispense
+	Dosage dosageInstruction = 20; // How the medication is to be used by the patient or administered by the caregiver
+	MDSubstitution substitution = 21; // Whether a substitution was 
+	Reference detectedIssue = 22; // Clinical issue with action
+	bool notDone = 23; // Whether the dispense was or was not performed
+	CodeableConcept notDoneCodeableConcept = 24; // Why a dispense was not performed
+	Reference notDoneReasonReference = 25;
+	Reference eventHistory = 26; // A list of releveant lifecycle events
+}
+
+message MedicationAdministration {
+
+	/*
+	This resource covers the administration of all medications and vaccines. Please refer to the Immunization Resource/Profile for the treatment of vaccines. 
+	It will principally be used within care settings (including inpatient) to record the capture of medication administrations, including self-administrations
+	of oral medications, injections, intra-venous adjustments, etc. It can also be used in out-patient settings to record allergy shots and other non-immunization administrations. 
+	In some cases it might be used for home-health reporting, such as recording self-administered or even device-administered insulin.
+	*/
+
+	message MAPerformer {
+		Reference actor = 1; // Individual who was performing
+		Reference onBehalfOf = 2
+	}
+
+	message MADosage {
+		string text = 1; // Free text dosage instructions e.g. SIG
+		CodeableConcept site = 2; // Body site administered to
+		CodeableConcept route = 3; // Path of substance into body
+		CodeableConcept method = 4; // How drug was administered
+		Quantity dose = 5; // Amount of medication per dose
+		Ratio rateRatio = 6; // Dose quantity per unit of time
+		Quantity rateQuantity = 7;
+	}
+
+	Identifier identifier = 1; // External identifier
+	Reference definition = 2; // Instantiates protocol or definition
+	Reference partOf = 3; // Part of referenced event
+	string status = 4; // in-progress | on-hold | completed | entered-in-error | stopped | unknown
+	CodeableConcept category = 5; // Type of medication usage
+	CodeableConcept medicationCodeableConcept = 6; // What was administered
+	Reference medicationReference = 7;
+	Reference subject = 8; // Who received medication
+	Reference context = 9; // Encounter or Episode of Care administered as part of
+	Reference supportingInformation = 10; // Additional information to support administration
+	Timestamp effectiveDateTime = 11; // Start and end time of administration
+	Period effectivePeriod = 12; 
+	MAPerformer performer = 13; // Who administered substance
+	bool notGiven = 14; // True if medication not administered
+	CodeableConcept reasonNotGiven = 15; // Reason administration not performed
+	CodeableConcept reasonCode = 16; // Reason administration performed
+	Reference reasonReference = 17; // Condition or Observation that supports why the medication was administered
+	Reference prescription = 18; // Request administration performed against
+	Reference device = 19; // Device used to administer
+	Annotation note = 20; // Information about the administration
+	MADosage dosage = 21; // Details of how medication was taken
+	Reference eventHistory = 22; // A list of events of interest in the lifecycle
+}
+
+message MedicationStatement {
+
+	/*
+	A record of a medication that is being consumed by a patient. A MedicationStatement may indicate that the patient may be taking the medication now, or has taken the medication in the past 
+	or will be taking the medication in the future. The source of this information can be the patient, significant other (such as a family member or spouse), or a clinician.
+	*/
+
+	Identifier identifier = 1; // External identifier
+	Reference basedOn = 2; // Fulfils plan, proposal or order
+	Reference partOf = 3; // Part of referenced event
+	Reference context = 4; // Encounter / Episode associated with MedicationStatement
+	string status = 5; // active | completed | entered-in-error | intended | stopped | on-hold
+	CodeableConcept category = 6; // Type of medication usage
+	CodeableConcept medicationCodeableConcept = 7; // What medication was taken
+	Reference medicationReference = 8;
+	Timestamp effectiveDateTime = 9; // // The date/time or interval when the medication was taken
+	Period effectivePeriod = 10;
+	Timestamp dateAsserted = 11; // When the statement was asserted?
+	Reference informationSource = 12; // Person or organization that provided the information about the taking of this medication
+	Reference subject = 13; // Who is/was taking the medication
+	Reference derivedFrom = 14; // Additional supporting information
+	string taken = 15; // y | n | unk | na
+	CodeableConcept reasonNotTaken = 16; // True if asserting medication was not given
+	CodeableConcept reasonCode = 17; // Reason for why the medication is being/was taken
+	Reference reasonReference = 18; // Condition or observation that supports why the medication is being/was taken
+	Annotation note = 19; // Further information about the statement
+	Dosage dosage = 20; // Details of how medication is/was taken or should be taken
+}
+
+message Medication {
+
+	/*
+	This resource is primarily used for the identification and definition of a medication. It covers the ingredients and the packaging for a medication.
+	The Medication resource allows for medications to be characterized by the form of the drug and the ingredient (or ingredients), as well as how it is packaged. 
+	The medication will include the ingredient(s) and their strength(s) and the package can include the amount (for example, number of tablets, volume, etc.) that
+	is contained in a particular container (for example, 100 capsules of Amoxicillin 500mg per bottle).
+	*/
+
+	message Ingredient {
+		CodeableConcept itemCodeableConcept = 1; // The product contained
+		Reference itemReference = 2;
+		bool isActive = 3; // Active ingredient indicator
+		Ratio amount = 4; // Quantity of ingredient present
+	}
+
+	message Package {
+
+		message Content {
+			CodeableConcept itemCodeableConcept = 1; // The item in the package
+			Reference itemReference = 2;
+			Quantity amount = 3; // Quantity present in the package
+		}
+		
+		message Batch {
+			string lotNumber = 1; // Identifier assigned to batch
+			Timestamp expirationDate = 2; // When batch will expire
+		}
+
+		CodeableConcept container = 1; // E.g. box, vial, blister-pack
+		Content content = 2; // What is in the package
+		Batch batch = 3; // Identifier assigned to batch
+	}
+
+	CodeableConcept code = 1; // Codes that identify this medication
+	string status = 2; // active | inactive | entered-in-error
+	bool isBrand = 3; // True if a brand
+	bool isOverTheCounter = 4; // True if medication does not require a prescription
+	Reference manufacturer = 5; // Manufacturer of the item
+	CodeableConcept form = 6; // powder | tablets | capsule +
+	Ingredient ingredient = 7; // Active or inactive ingredient
+	Package package = 8; // Details about packaged 
+	Attachement image = 9; // Picture of the medication
+}
+
+message Immunization {
+
+	/*
+	Describes the event of a patient being administered a vaccination or a record of a vaccination as reported by a patient, a clinician or another party and may include vaccine
+	reaction information and what vaccination protocol was followed.
+
+	The Immunization resource is intended to cover the recording of current and historical administration of vaccines to patients across all healthcare disciplines in all care 
+	settings and all regions. This includes immunization of both humans and animals, but does not include the administration of non-vaccine agents, even those that may have or 
+	claim to have immunological effects.
+	*/
+
+	message Practicioner {
+		CodeableConcept role = 1; // What type of performance was done
+		CodeableConcept actor = 2; // Individual who was performing
+	}
+
+	message Explanation {
+		CodeableConcept reason = 1; // Why immunization occurred
+		CodeableConcept reasonNotGiven = 2; // Why immunization did not occur
+	}
+
+	message Reaction {
+		Timestamp date = 1; // When reaction started
+		Reference detail = 2; // Additional information on reaction
+		bool reported = 3; // Indicates self-reported reaction
+	}
+
+	message VaccinationProtocol {
+		int64 doseSequence = 1; // Dose number within series
+		string description = 2; // Details of vaccine protocol
+		Reference authority = 3; // Who is responsible for protocol
+		string series = 4; // Name of vaccine series
+		int64 seriesDoses = 5; // Recommended number of doses for immunity
+		CodeableConcept targetDisease = 6; // Disease immunized against
+		CodeableConcept doseStatus = 7; // Indicates if dose counts towards immunity
+		CodeableConcept doseStatusReason = 8; // Why dose does (not) count
+	}
+
+	Identifier identifier = 1; // Business identifier
+	string status = 2; // completed | entered-in-error
+	bool notGiven = 3; // Flag for whether immunization was given
+	CodeableConcept vaccineCode = 4; // Vaccine product administered
+	Reference patient = 5; // Who was immunized
+	Reference encounter = 6; // Encounter administered as part of
+	Timestamp date = 7; // Vaccination administration date
+	bool primaryResource = 8; // Indicates context the data was recorded in
+	CodeableConcept reportOrigin = 9; // Indicates the source of a secondarily reported record
+	Reference location = 10; // Where vaccination occurred
+	Reference manufacturer = 11; // Vaccine manufacturer
+	string lotNumber = 12; // Vaccine lot number
+	Timestamp expirationDate = 13; // Vaccine expiration date
+	CodeableConcept site = 14; // Body site vaccine was administered
+	CodeableConcept route = 15; // How vaccine entered body
+	Quantity doseQuantity = 16; // Amount of vaccine administered
+	Practicioner practicioner = 17; // Who performed event
+	Annotation note = 18; // Vaccination notes
+	Explanation explanation = 19; // Administration/non-administration reasons
+	Reaction reaction = 20; // Details of a reaction that follows immunization
+	VaccinationProtocol vaccinationProtocol = 21; // What protocol was followed
+}
+
+message ImmunizationRecommendation {
+
+	/*
+	A patient's point-in-time immunization and recommendation (i.e. forecasting a patient's immunization
+	 eligibility according to a published schedule) with optional supporting justification.
+
+	The ImmunizationRecommendation resource is intended to cover communication of a specified patient's immunization recommendations and status
+	across all healthcare disciplines in all care settings and all regions. 	Additionally, the ImmunizationRecommendation resource is expected to cover key 
+	concepts related to the querying of a patient's immunization recommendations and status. This resource - through consultation with the PHER work group.
+	*/
+
+	message Recommendation {
+
+		message DateCriterion {
+			CodeableConcept code = 1; // Type of date
+			Timestamp value = 2; // Recommended date
+		}
+
+		message Protocol {
+			int64 doseSequence = 1; // Dose number within sequence
+			string description = 2; // Protocol details
+			Reference authority = 3; // Who is responsible for protocol
+			string series = 4; // Name of vaccination series
+		}
+
+		Timestamp date = 1; // Date recommendation created
+		CodeableConcept vaccineCode = 2; // Vaccine recommendation applies to
+		CodeableConcept targetDisease = 3; // Disease to be immunized against
+		int64 doseNumber = 4; // Recommended dose number
+		CodeableConcept forecastStatus = 5; // Vaccine administration status
+		DateCriterion dateCriterion = 6; // Dates governing proposed immunization
+		Protocol protocol = 7; // Protocol used by recommendation
+		Reference supportingImmunization = 8; // Past immunizations supporting recommendation
+		Reference supportingPatientInformation = 9; // Patient observations supporting recommendation
+	}
+
+	Identifier identifier = 1; // Business identifier
+	Reference patient = 2; // Who this profile is for
+	Recommendation recommendation = 3; // Vaccine administration recommendations
+}
+

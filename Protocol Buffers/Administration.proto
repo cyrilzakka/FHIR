@@ -1,0 +1,735 @@
+syntax = "proto3";
+
+package administration;
+
+import "Foundation.proto";
+import "google/protobuf/timestamp.proto";
+
+message Patient {
+
+	/*
+	This Resource covers data about patients and animals involved in a wide range of health-related activities.
+	The data in the Resource covers the "who" information about the patient: its attributes are focused on the demographic information
+	 necessary to support the administrative, financial and logistic procedures. A Patient record is generally created and maintained by 
+	 each organization providing care for a patient. A patient or animal receiving care at multiple organizations may therefore have its 
+	 information present in multiple Patient Resources.
+	*/
+
+
+	enum PTGender {
+		MALE = 0;
+		FEMALE = 1;
+		OTHER = 2;
+		UNKNOWN = 3;
+	}
+
+	enum PTType {
+		REPLACED_BY = 0;
+		REPLACES = 1;
+		REFER = 2;
+		SEE_ALSO = 3;
+	}
+
+	message PTPatientContact {
+		CodeableConcept relationship = 1; // The kind of relationship
+		HumanName name = 2; // A name associated with the contact person
+		ContactPoint telecom = 3; // A contact detail for the person
+		Address address = 4; // Address for the contact person
+		PTGender gender = 5; // male | female | other | unknown
+		Reference organization = 6; // Organization that is associated with the contact
+		Period period = 7; // The period during which this contact person or organization is valid to be contacted relating to this patient
+	}
+
+	message PTAnimal {
+		CodeableConcept species = 1; // E.g. Dog, Cow
+		CodeableConcept breed = 2; // E.g. Poodle, Angus
+		CodeableConcept genderStatus = 3; // E.g. Neutered, Intact
+	}
+
+	message PTCommunication {
+		CodeableConcept language = 1; // The language which can be used to communicate with the patient about his or her health
+		bool preferred = 2; // Language preference indicator
+	}
+
+	message PTLink {
+		Reference other = 1; // The other patient or related person resource that the link refers to
+		PTType type = 2; // replaced-by | replaces | refer | seealso - type of link
+	}
+
+	Identifier identifier = 1; // An identifier for this patient
+	bool active = 2; // Whether this patient's record is in active use
+	HumanName name = 3; // A name associated with the patient
+	ContactPoint telecom = 4; // A contact detail for the individual
+	PTGender gender = 5; // male | female | other | unknown
+	Timestamp birthDate = 6; // The date of birth for the individual
+	bool deceasedBoolean = 7; // Indicates if the individual is deceased or not
+	Timestamp deceasedDateTime = 8;
+	repeated Address address = 9; // Addresses for the individual
+	CodeableConcept maritalStatus = 10; // Marital (civil) status of a patient
+	bool multipleBirthBoolean = 11; // Whether patient is part of a multiple birth
+	uint64 multipleBirthInteger = 12;
+	Attachement photo = 13; // Image of the patient
+	repeated Contact contact = 14; // A contact party (e.g. guardian, partner, friend) for the patient
+	Animal animal = 15; // This patient is known to be an animal (non-human)
+	repeated Communication communication = 16; // A list of Languages which may be used to communicate with the patient about his or her health
+	Reference generalPracticioner = 17; // Patient's nominated primary care provider
+	Reference managingOrganization = 18; // Organization that is the custodian of the patient record
+	Link link = 19; // Link to another patient resource that concerns the same actual person
+}
+
+message Practicioner {
+
+	/*
+	Practitioner performs different roles within the same or even different organizations. Depending on jurisdiction and custom, it may be necessary 
+	to maintain a specific Practitioner Resource for each such role or have a single Practitioner with multiple roles. The role can be limited to a specific period, 
+	after which authorization for this role ends. Note that the represented organization need not necessarily be the (direct) employer of a Practitioner.
+	*/
+
+	enum PCGender {
+		MALE = 0;
+		FEMALE = 1;
+		OTHER = 2;
+		UNKNOWN = 3;
+	}
+
+	message PCQualification {
+		Identifier identifier = 1; // An identifier for this qualification for the practitioner
+		CodeableConcept code = 2; // Coded representation of the qualification
+		Period period = 3; // Period during which the qualification is valid
+		Reference issuer = 4; // Organization that regulates and issues the qualification
+	}
+
+	Identifier identifier = 1; // A identifier for the person as this agent
+	bool active = 2; // Whether this practitioner's record is in active use
+	repeated HumanName name = 3; // The name(s) associated with the practitioner
+	ContactPoint telecom = 4; // A contact detail for the practitioner (that apply to all roles)
+	Address address = 5; // Address(es) of the practitioner that are not role specific (typically home address)
+	PCGender gender = 6; // male | female | other | unknown
+	Timestamp birthDate = 7; // The date on which the practitioner was born
+	Attachement photo = 8; // Image of the person
+	repeated PCQualification qualification = 9; // Qualifications obtained by training and certification
+	repeated CodeableConcept communication = 10; // A language the practitioner is able to use in patient communication
+}
+
+message Device {
+
+	/*
+	In FHIR, the "Device" is the "administrative" resource for the device (it does not change much and has manufacturer information etc.)
+	*/
+
+	enum DVEntryType {
+		BARCODE = 0;
+		RFID = 1;
+		MANUAL = 2;
+	}
+
+	enum DVStatus {
+		ACTIVE = 0;
+		INACTIVE = 1;
+		ENTERED_IN_ERROR = 2;
+		UNKNOWN = 3;
+	}
+
+	message DVUDI {
+		string deviceIdentifier = 1; // Mandatory fixed portion of UDI
+		string name = 2; // Device Name as appears on UDI label
+		string jurisdiction = 3; // Regional UDI authority
+		string carrierHRF = 4; // UDI Human Readable Barcode String
+		string carrierAIDC = 5; // UDI Machine Readable Barcode String
+		string issuer = 6; // UDI Issuing Organization
+		DVEntryType entryType = 7; // barcode | rfid | manual +
+	}
+
+	Identifier identifier = 1; // Instance identifier
+	DVUDI udi = 2; // Unique Device Identifier (UDI) Barcode string
+	DVStatus status = 3; // active | inactive | entered-in-error | unknown
+	CodeableConcept type = 4; // What kind of device this is
+	string lotNumber = 5; // Lot number of manufacturer
+	string manufacturer = 6; // Name of device manufacturer
+	Timestamp manufacturerDate = 7; // Date when the device was made
+	Timestamp expirationDate = 8; // Date and time of expiry of this device (if applicable)
+	string model = 9; // Model id assigned by the manufacturer
+	string version = 10; // Version number (i.e. software)
+	Reference patient = 11; // Patient to whom Device is affixed
+	Reference owner = 12; // Organization responsible for device
+	ContactPoint contact = 13; // Details for human/organization for support
+	Reference location = 14; // Where the resource is found
+	string url = 15; // Network address to contact device
+	Annotation note = 16; // Device notes and comments
+	CodeableConcept safety = 17; // Safety Characteristics of Device
+}
+
+message Organization {
+
+	/*
+	The Organization resource is used for collections of people that have come together to achieve an objective. The Group resource is used to identify a 
+	collection of people (or animals, devices, etc.) that are gathered for the purpose of analysis or acting upon, but are not expected to act themselves.
+
+	The Organization resource often exists as a hierarchy of organization resources, using the part-of property to provide the association of the child to its parent organization.
+	This organizational hierarchy helps communicate the conceptual structure, whereas the Location resource provides the physical representation of the hierarchy.
+	The linkage between Organization and Location is from each point in the location hierarchy to the appropriate level in the Organization hierarchy. These links don't all have to 
+	be to the top level Organization.
+	When populating the organization and location hierarchies there is often not a clear distinction between these 2, however to assist in making the decision, Locations are always used for 
+	recording where a service occurs, and hence where encounters and observations are associated. The Organization property on these resources may not be the location where the service took place.
+	*/
+
+	message OGContact {
+		CodeableConcept purpose = 1; // The type of contact
+		HumanName name = 2; // A name associated with the contact
+		repeated ContactPoint telecom = 3; // Contact details (telephone, email, etc.) for a contact
+		repeated Address address = 4; // Visiting or postal addresses for the contact
+	}
+
+	Identifier identifier = 1; // Identifies this organization across multiple systems
+	bool active = 2; // Whether the organization's record is still in active use
+	CodeableConcept type = 3; // Kind of organization
+	string name = 4; // Name used for the organization
+	repeated string alias = 5; // A list of alternate names that the organization is known as, or was known as in the past
+	ContactPoint telecom = 6; // A contact detail for the organization
+	Address address = 7; // An address for the organization
+	Reference partOf = 8; // The organization of which this organization forms a part
+	OGContact contact = 9; // Contact for the organization for a certain purpose
+}
+
+message Location {
+
+	/*
+	Locations and Organizations are very closely related resources and can often be mixed/matched/confused.
+	The Location is intended to describe the more physical structures managed/operated by an organization, whereas the Organization is intended to represent the more conceptual hierarchies, such as a ward.
+
+	A Location is valid without an address in cases where it could be purely described by a geo-coded location in remote areas, or when recorded by a device. Locations with a mode = "kind" would also likely 
+	not have an address, as they are just a type of location, but could also have an address where they can be found at the address.
+	Another use of location could be for describing a Jurisdiction. This jurisdiction may be considered a classified boundary which could be a combination of a physical boundary, and some other discriminator(s)
+	*/
+
+	enum LTStatus {
+		ACTIVE = 0;
+		SUSPENDED = 1;
+		INACTIVE = 2;
+	}
+
+	enum LTMode {
+		INSTANCE = 0;
+		KIND = 1;
+	}
+
+	message LTPosition {
+		float longitude = 1; // Longitude with WGS84 datum
+		float lattitude = 2; // Latitude with WGS84 datum
+		float altitude = 3; // Altitude with WGS84 datum
+	}
+
+	Identifier identifier = 1; // Unique code or number identifying the location to its users
+	LTStatus status = 2; // active | suspended | inactive
+	Coding operationalStatus = 3; // The Operational status of the location (typically only for a bed/room)
+	string name = 4; // Name of the location as used by humans
+	repeated string alias = 5; // A list of alternate names that the location is known as, or was known as in the past
+	string description = 6; // Additional details about the location that could be displayed as further information to identify the location beyond its name
+	LTMode mode = 7; // instance | kind
+	CodeableConcept type = 8; // Type of function performed
+	repeated ContactPoint telecom = 9; // Contact details of the location
+	Address address = 10; // Physical location
+	CodeableConcept physicalType = 11; // Physical form of the location
+	LTPosition positon = 12; // The absolute geographic location
+	Reference managingOrganization = 13; // Organization responsible for provisioning and upkeep
+	Reference partOf = 14; // Another Location this one is physically part of
+	Reference endpoint = 15; // Technical endpoints providing access to services operated for the location
+}
+
+message HealthcareService {
+
+	/*
+	The HealthcareService resource can be used with the Schedule resource to define actual availability of the service. This would be done by using the Schedule's Actor property.
+
+	When creating an Appointment, the HealthcareService is to be assigned to one of the participants.
+	It is up to the scheduling system to determine if the service is available, and can be accepted.
+	*/
+
+	enum HSDayOfWeek {
+ 		MON = 0;
+ 		TUE = 1;
+ 		WED = 2;
+ 		THU = 3;
+ 		FRI = 4;
+ 		SAT = 5;
+ 		SUN = 6;
+ 	}
+
+	message HSAvailableTime {
+		HSDayOfWeek daysOfWeek = 1; // mon | tue | wed | thu | fri | sat | sun
+		bool allDay = 2; // Always available? e.g. 24 hour service
+		Timestamp availableStartTime = 3; // Opening time of day (ignored if allDay = true)
+		Timestamp availableEndTime = 4; // Closing time of day (ignored if allDay = true)
+	}
+
+	message HSNotAvailable {
+		string description = 1; // Reason presented to the user explaining why time not available
+		Period during = 2; // Service not availablefrom this date
+	}
+
+	Identifier identifier = 1; // External identifiers for this item
+	bool active = 2; // Whether this healthcareservice is in active use
+	Reference providedBy = 3; // Organization that provides this service
+	CodeableConcept category = 4; // Broad category of service being performed or delivered
+	CodeableConcept type = 5; // Type of service that may be delivered or performed
+	repeated CodeableConcept specialty = 6; // Specialties handled by the HealthcareService
+	repeated Reference location = 7; // Location(s) where service may be provided
+	string name = 8; // Description of service as presented to a consumer while searching
+	string comment = 9; // Additional description and/or any specific issues not covered elsewhere
+	string extraDetails = 10; // Extra details about the service that can't be placed in the other fields
+	Attachement photo = 11; // Facilitates quick identification of the service
+	repeated ContactPoint telecom = 12; // Contacts related to the healthcare service
+	repeated Reference coverageArea = 13; // Location(s) service is intended for/available to
+	repeated CodeableConcept serviceProvisionCode = 14; // Conditions under which service is available/offered
+	repeated CodeableConcept eligibility = 15; // Specific eligibility requirements required to use the service
+	string eligibilityNote = 16; // Describes the eligibility conditions for the service
+	repeated string programName = 17; // Program Names that categorize the service
+	repeated CodeableConcept characteristic = 18; // Collection of characteristics (attributes)
+	repeated CodeableConcept referralMethod = 19; // Ways that the service accepts referrals
+	bool appointmentRequired = 20; // If an appointment is required for access to this service
+	repeated HSAvailableTime availableTime = 21; // Times the Service Site is available
+	repeated HSNotAvailable notAvailable = 22; // Not available during this time due to provided reason
+	string availabilityExceptions = 23; // Description of availability exceptions
+	Reference endpoint = 24; // Technical endpoints providing access to services operated for the location
+}
+
+message RelatedPerson {
+	
+	/*
+	RelatedPersons typically have a personal or non-healthcare-specific professional relationship to the patient. A RelatedPerson resource is primarily used for attribution
+	of information, since RelatedPersons are often a source of information about the patient.
+	*/
+
+	enum RPGender {
+		MALE = 0;
+		FEMALE = 1;
+		OTHER = 2;
+		UNKNOWN = 3;
+	}
+
+	Identifier identifier = 1; // A human identifier for this person
+	bool active = 2; // Whether this related person's record is in active use
+	Reference patient = 3; // The patient this person is related to
+	CodeableConcept relationship = 4; // The nature of the relationship
+	HumanName name = 5; // A name associated with the person
+	repeated ContactPoint telecom = 6; // A contact detail for the person
+	RPGender gender = 7; // male | female | other | unknown
+	Timestamp birthDate = 8; // The date on which the related person was born
+	Address address = 9; // Address where the related person can be contacted or visited
+	Attachement photo = 10; // Image of the person
+	Period period = 11; // Period of time that this relationship is considered valid
+}
+
+message Group {
+
+	/*
+	The Group resource is used in one of two ways:
+
+	- To define a group of specific people, animals, devices, etc. that is being tracked, examined or otherwise referenced as part of healthcare-related activities
+	- To define a set of possible people, animals, devices, etc. that are of interest for some intended future healthcare-related activities
+
+	Examples of the former could include group therapy or treatment sessions, exposed entities tracked as part of public health, etc. The latter might be used to define expected subjects for a clinical study.
+	Both use cases are handled by a single resource because the data elements captured tend to be similar.
+	*/
+
+	enum GPType {
+		PERSON = 0;
+		ANIMAL = 1;
+		PRACTICIONER = 2;
+		DEVICE = 3;
+		MEDICATION = 4;
+		SUBSTANCE = 5;
+	}
+
+	message GPCharacteristic {
+		CodeableConcept code = 1; // Kind of characteristic
+		CodeableConcept valueCodeableConcept = 2; // Value held by characteristic
+		bool valueBoolean = 3;
+		Quantity valueQuantity = 4;
+		Range valueRange = 5;
+		bool exclude = 6; // Group includes or excludes
+		Period period = 7; // Period over which characteristic is tested
+	}
+
+	message GPMember {
+		Reference entity = 1; // Reference to the group member
+		Period period = 2; // Period member belonged to the group
+		bool inactive = 3; // If member is no longer in group
+	}
+
+	Identifier identifier = 1; // Unique id
+	bool active = 2; // Whether this group's record is in active use
+	GPType type = 3; // person | animal | practitioner | device | medication | substance
+	bool actual = 4; // Descriptive or actual
+	repeated CodeableConcept code = 5; // Kind of Group members
+	string name = 6; // Label for Group
+	uint64 quantity = 7; // Number of members
+	repeated GPCharacteristic characteristic = 8; // Trait of group members
+	repeated GPMember member = 9; // Who or what is in group
+}
+
+message PracticionerRole {
+
+	/*
+	A specific set of Roles/Locations/specialties/services that a practitioner may perform at an organization for a period of time.
+	*/
+
+	enum PRDayOfWeek {
+ 		MON = 0;
+ 		TUE = 1;
+ 		WED = 2;
+ 		THU = 3;
+ 		FRI = 4;
+ 		SAT = 5;
+ 		SUN = 6;
+ 	}
+
+	message PRAvailableTime {
+		PRDayOfWeek daysOfWeek = 1; // mon | tue | wed | thu | fri | sat | sun
+		bool allDay = 2; // Always available? e.g. 24 hour service
+		Timestamp availableStartTime = 3; // Opening time of day (ignored if allDay = true)
+		Timestamp availableEndTime = 4; // Closing time of day (ignored if allDay = true)
+	}
+
+	message PRNotAvailable {
+		string description = 1; // Reason presented to the user explaining why time not available
+		Period during = 2; // Service not availablefrom this date
+	}
+
+	Identifier identifier = 1; // Business Identifiers that are specific to a role/location
+	bool active = 2; // Whether this practitioner's record is in active use
+	Period period = 3; // The period during which the practitioner is authorized to perform in these role(s)
+	Reference practitioner = 4; // Practitioner that is able to provide the defined services for the organation
+	Reference organization = 5; // Organization where the roles are available
+	repeated CodeableConcept code = 6; // Roles which this practitioner may perform
+	CodeableConcept specialty = 7; // Specific specialty of the practitioner
+	repeated Reference location = 8; // The location(s) at which this practitioner provides care
+	Reference healthcareService = 9; // The list of healthcare services that this worker provides for this role's Organization/Location(s)
+	repeated ContactPoint telecom = 10; // Contact details that are specific to the role/location/service
+	repeated PRAvailableTime availableTime = 11; // Times the Service Site is available
+	repeated PRNotAvailable notAvailable = 12; // Not available during this time due to provided reason
+	string availabilityExceptions = 13; // Description of availability exceptions
+	Reference endpoint = 14; // Technical endpoints providing access to services operated for the practitioner with this role
+}
+
+message Endpoint {
+
+	/*
+	An endpoint describes the technical details of a location that can be connected to for the delivery/retrieval of information. 
+	Sufficient information is required to ensure that a connection can be made securely, and appropriate data transmitted as defined 
+	by the endpoint owner. This is not a description of details of the current system, as found in CapabilityStatement, but of another (potentially external) system.
+	These may be locally hosted services, regional services, or national service.
+	*/
+
+	enum EPStatus {
+		ACTIVE = 0;
+		SUSPENDED = 1;
+		ERROR = 2;
+		OFF = 3;
+		ENTERED_IN_ERROR = 4;
+		TEST = 5;
+	}
+
+	Identifier identifier = 1; // Identifies this endpoint across multiple systems
+	EPStatus status = 2; // active | suspended | error | off | entered-in-error | test
+	Coding connectionType = 3; // Protocol/Profile/Standard to be used with this endpoint connection
+	string name = 4; // A name that this endpoint can be identified by
+	Reference managingOrganization = 5; // Organization that manages this endpoint (may not be the organization that exposes the endpoint)
+	repeated ContactPoint contact = 6; // Contact details for source (e.g. troubleshooting)
+	Period period = 7; // Interval the endpoint is expected to be operational
+	CodeableConcept payloadType = 8; // The type of content that may be used at this endpoint (e.g. XDS Discharge summaries)
+	string payloadMimeType = 9; // Mimetype to send. If not specified, the content could be anything (including no payload, if the connectionType defined this)
+	string address = 10; // The technical base address for connecting to this endpoint
+	string header = 11; // Usage depends on the channel type
+}
+
+message EpisodeOfCare {
+
+	/*
+	An association between a patient and an organization / healthcare provider(s) during which time encounters may occur. 
+	The managing organization assumes a level of responsibility for the patient during this time.
+	*/
+
+	enum ECStatus {
+		PLANNED = 0;
+		WAITLIST = 1;
+		ACTIVE = 2;
+		ONHOLD = 3;
+		FINISHED = 4;
+		CANCELLED = 5;
+		ENTERED_IN_ERROR = 6;
+	}
+
+	message ECStatusHistory {
+		ECStatus status = 1; // planned | waitlist | active | onhold | finished | cancelled | entered-in-error
+		Period period = 2; // Duration the EpisodeOfCare was in the specified status
+	}
+
+	message ECDiagnosis {
+		Reference condition = 1; // Conditions/problems/diagnoses this episode of care is for
+		CodeableConcept role = 2; // Role that this diagnosis has within the episode of care (e.g. admission, billing, discharge …)
+		int64 rank = 3; // Ranking of the diagnosis (for each role type)
+	}
+
+	Identifier identifier = 1; // Business Identifier(s) relevant for this EpisodeOfCare
+	ECStatus status = 2; // planned | waitlist | active | onhold | finished | cancelled | entered-in-error
+	repeated ECStatusHistory statusHistory = 3; // Past list of status codes (the current status may be included to cover the start date of the status)
+	CodeableConcept type = 4; // Type/class - e.g. specialist referral, disease management
+	repeated ECDiagnosis diagnosis = 5; // The list of diagnosis relevant to this episode of care
+	Reference patient = 6; // The patient who is the focus of this episode of care
+	Reference managingOrganization = 7; // Organization that assumes care
+	Period period = 8; // Interval during responsibility is assumed
+	repeated Reference referralRequest = 9; // Originating Referral Request(s)
+	Reference careManager = 10; // Care manager/care co-ordinator for the patient
+	repeated Reference team = 11; // Other practitioners facilitating this episode of care
+	repeated Reference account = 12; // The set of accounts that may be used for billing for this EpisodeOfCare
+}
+
+message Encounter {
+
+	/*
+	An interaction between a patient and healthcare provider(s) for the purpose of providing healthcare service(s) or assessing the health status of a patient.
+	*/
+
+	enum ECStatus {
+		PLANNED = 0;
+		ARRIVED = 1;
+		TRIAGED = 2;
+		IN_PROGRESS = 3;
+		ON_LEAVE = 4;
+		FINISHED = 5;
+		CANCELLED = 6;
+	}
+
+	enum ECClass {
+		INPATIENT = 0;
+		OUTPATIENT = 1;
+		AMBULATORY = 2;
+		EMERGENCY = 4;
+	}
+
+	enum ECLocationStatus {
+		PLANNED = 0;
+		ACTIVE = 1;
+		RESERVED = 2;
+		COMPLETED = 3;
+	}
+
+	message ECStatusHistory {
+		ECStatus status = 1; // planned | arrived | triaged | in-progress | onleave | finished | cancelled +
+		Period period = 2; // The time that the episode was in the specified status
+	}
+
+	message ECClassHistory {
+		ECClass class = 1; // inpatient | outpatient | ambulatory | emergency +
+		Period period = 2; // The time that the episode was in the specified class
+	}
+
+	message ECParticipant {
+		CodeableConcept type = 1; // Role of participant in encounter
+		Period period = 2; // Period of time during the encounter that the participant participated
+		repeated Reference individual = 3; // Persons involved in the encounter other than the patient
+	}
+
+	message ECDiagnosis {
+		Reference condition = 1; // Reason the encounter takes place (resource)
+		CodeableConcept role = 2; // Role that this diagnosis has within the encounter (e.g. admission, billing, discharge …)
+		int64 rank = 3; // Ranking of the diagnosis (for each role type)
+	}
+
+	message ECHospitalization {
+		Identifier preAdmissionIdentifier = 1; // Pre-admission identifier
+		Reference origin = 2; // The location from which the patient came before admission
+		CodeableConcept admitSource = 3; // From where patient was admitted (physician referral, transfer)
+		CodeableConcept reAdmission = 4; // The type of hospital re-admission that has occurred (if any). If the value is absent, then this is not identified as a readmission
+		repeated CodeableConcept dietPreference = 5; // Diet preferences reported by the patient
+		repeated CodeableConcept specialCourtesy = 6; // Special courtesies (VIP, board member)
+		repeated CodeableConcept specialArrangement = 7; // Wheelchair, translator, stretcher, etc.
+		Reference destination = 8; // Location to which the patient is discharged
+		CodeableConcept dischargeDisposition = 9; // Category or kind of location after discharge
+	}
+
+	message ECLocation {
+		Reference location = 1; // Location the encounter takes place
+		ECLocationStatus status = 2; // planned | active | reserved | completed
+		Period period = 3; // Time period during which the patient was present at the location
+	}
+
+	Identifier identifier = 1; // Identifier(s) by which this encounter is known
+	ECStatus status = 2; // planned | arrived | triaged | in-progress | onleave | finished | cancelled +
+	repeated ECStatusHistory statusHistory = 3; // List of past encounter statuses
+	repeated Coding class = 4; // List of past encounter classes
+	ECClassHistory classHistory = 5;
+	CodeableConcept type = 6; // Specific type of encounter
+	CodeableConcept priority = 7; // Indicates the urgency of the encounter
+	Reference subject = 8; // The patient ro group present at the encounter
+	repeated Reference epsiodeOfCare = 9; // Episode(s) of care that this encounter should be recorded against
+	Reference incomingReferral = 10; // The ReferralRequest that initiated this encounter
+	repeated ECParticipant participant = 11; // List of participants involved in the encounter
+	Reference appointment = 12; // The appointment that scheduled this encounter
+	Period period = 13; // The start and end time of the encounter
+	Duration length = 14; // Quantity of time the encounter lasted (less time absent)
+	CodeableConcept reason = 15; // Reason the encounter takes place (code)
+	repeated ECDiagnosis diagnosis = 16; // The list of diagnosis relevant to this encounter
+	repeated Reference account = 17; // The set of accounts that may be used for billing for this Encounter
+	repeated ECHospitalization hospitalization = 18; // Details about the admission to a healthcare service
+	repeated ECLocation location = 19; // List of locations where the patient has been
+	Reference serviceProvider = 20; // The custodian organization of this Encounter record
+	Reference partOf = 21; // Another Encounter this encounter is part of
+}
+
+message Flag {
+
+	/*
+	Prospective warnings of potential issues when providing care to the patient.
+	*/
+
+	enum FGStatus {
+		ACTIVE = 0;
+		INACTIVE = 1;
+		ENTERED_IN_ERROR = 2;
+	}
+
+	Identifier identifier = 1; // Business identifier
+	FGStatus status = 2; // active | inactive | entered-in-error
+	CodeableConcept category = 3; // Clinical, administrative, etc.
+	CodeableConcept code = 4; // Coded or textual message to display to user
+	Reference subject = 5; // Who/What is flag about?
+	Period period = 6; // Time period when flag is active
+	Reference encounter = 7; // Alert relevant during encounter
+	Reference author = 8; // Flag creator
+}
+
+message DeviceComponent {
+
+	/*
+	The characteristics, operational status and capabilities of a medical-related component of a medical device.
+	*/
+
+	enum DCMeasurementPrinciple {
+		OTHER = 0;
+		CHEMICAL = 1;
+		ELECTRICAL = 2;
+		IMPEDANCE = 3;
+		NUCLEAR = 4;
+		OPTICAL = 5;
+		THERMAL = 6;
+		BIOLOGICAL = 7;
+		MECHANICAL = 8;
+		ACOUSTICAL = 9;
+		MANUAL = 10;
+	}
+
+	message DCProductionSpecification {
+		CodeableConcept specType = 1; // Type or kind of production specification, for example serial number or software revision
+		Identifier componentId = 2; // Internal component unique identification
+		string productionSpec = 3; // A printable string defining the component
+	}
+
+	Identifier identifier = 1; // Instance id assigned by the software stack
+	CodeableConcept type = 2; // What kind of component it is
+	Timestamp lastSystemChange = 3; // Recent system change timestamp
+	Reference source = 4; // Top-level device resource link
+	Reference parent = 5; // Parent resource link
+	CodeableConcept operationalStatus = 6; // Current operational status of the component, for example On, Off or Standby
+	CodeableConcept parameterGroup = 7; // Current supported parameter group
+	DCMeasurementPrinciple measurementPrinciple = 8; // other | chemical | electrical | impedance | nuclear | optical | thermal | biological | mechanical | acoustical | manual+
+	DCProductionSpecification productionSpecification = 9; // Specification details such as Component Revisions, or Serial Numbers
+	CodeableConcept languageCode = 10; // Language code for the human-readable text strings produced by the device
+}
+
+message DeviceMetric {
+
+	/*
+	Describes a measurement, calculation or setting capability of a medical device.
+	*/
+
+	enum DMType {
+		UNSPECIFIED = 0;
+		OFFSET = 1;
+		GAIN = 2;
+		TWO_POINT = 3;
+	}
+
+	enum DMType {
+		NOT_CALIBRATED = 0;
+		CALIBRATION_REQUIRED = 1;
+		CALIBRATED = 2;
+		UNSPECIFIED = 3;
+	}
+
+	enum DMOperationalStatus {
+		ON = 0;
+		OFF = 1;
+		STANDBY = 2;
+		ENTERED_IN_ERROR = 3;
+	}
+
+	enum DMColor {
+		BLACK = 0;
+		RED = 1;
+		GREEN = 2;
+		YELLOW = 3;
+		BLUE = 4;
+		MAGENTA = 5;
+		CYAN = 6;
+		WHITE = 7;
+	}
+
+	enum DMCategory {
+		MEASUREMENT = 0;
+		SETTING = 1;
+		CALCULATION = 2;
+		UNSPECIFIED = 3;
+	}
+
+	message DMCalibration {
+		DMType type = 1; // unspecified | offset | gain | two-point
+		DMType state = 2; // not-calibrated | calibration-required | calibrated | unspecified
+		Timestamp time = 3; // Describes the time last calibration has been performed
+	}
+
+	Identifier identifier = 1; // Unique identifier of this DeviceMetric
+	CodeableConcept type = 2; // Identity of metric, for example Heart Rate or PEEP Setting
+	CodeableConcept unit = 3; // Unit of Measure for the Metric
+	Reference source = 4; // Describes the link to the source Device
+	Reference parent = 5; // Describes the link to the parent DeviceComponent
+	DMOperationalStatus operationalStatus = 6; // on | off | standby | entered-in-error
+	DMColor color = 7; // black | red | green | yellow | blue | magenta | cyan | white
+	DMCategory category = 8; // measurement | setting | calculation | unspecified
+	Timing measurementPeriod = 9; // Describes the measurement repetition time
+	DMCalibration calibration = 10; // Describes the calibrations that have been performed or that are required to be performed
+}
+
+message Substance {
+
+	/*
+	A homogeneous material with a definite composition.
+	*/
+
+	enum SBStatus {
+		ACTIVE = 0;
+		INACTIVE = 1;
+		ENTERED_IN_ERROR = 2;
+	}
+
+	message SBInstance {
+		Identifier identifier = 1; // Identifier of the package/container
+		Timestamp expiry = 2; // When no longer valid to use
+		Quantity quantity = 3; // Amount of substance in the package
+	}
+
+	message SBIngredient {
+		optional Ratio quantity = 1; // Optional amount (concentration)
+		CodeableConcept substanceCodeableConcept = 2; // A component of the substance
+		Reference substanceReference = 3;
+	}
+
+	Identifier identifier = 1; // Unique identifier
+	SBStatus status = 2; // active | inactive | entered-in-error
+	CodeableConcept category = 3; // What class/type of substance this is
+	CodeableConcept code = 4; // What substance this is
+	string description = 5; // Textual description of the substance, comments
+	SBInstance instance = 6; // If this describes a specific package/container of the substance
+	SBIngredient ingredient = 7; // Composition information about the substance
+}

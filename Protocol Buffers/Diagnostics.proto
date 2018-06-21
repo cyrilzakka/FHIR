@@ -1,0 +1,385 @@
+syntax = "proto3";
+
+package diagnostics;
+
+import "Foundation.proto";
+import "google/protobuf/timestamp.proto";
+
+message Observation {
+
+	/*
+	Observations are a central element in healthcare, used to support diagnosis, monitor progress, determine baselines and patterns and even capture demographic characteristics. 
+	Most observations are simple name/value pair assertions with some metadata, but some observations group other observations together logically, or even are multi-component observations. 
+	*/
+
+	message Related {
+		string type = 1; // has-member | derived-from | sequel-to | replaces | qualified-by | interfered-by
+		Reference target = 2; // Resource that is related to this one
+	}
+
+	message ReferenceRange {
+		Quantity low = 1; // Low Range, if relevant
+		Quantity high = 2; // High Range, if relevant
+		CodeableConcept type = 3; // Reference range qualifier
+		CodeableConcept appliesTo = 4; // Reference range population
+		Range age = 5; // Applicable age range, if relevant
+		string text = 6; // Text based reference range in an observation
+	}
+
+	message Component {
+		CodeableConcept code = 1; // Type of component observation (code / type)
+		Quantity valueQuantity = 2; // Actual component result
+		CodeableConcept valueCodeableConcept = 3;
+		string valueString = 4;
+		Range valueRange = 5;
+		Ratio valueRatio = 6;
+		SampledData valueSampledData = 7;
+		Attachement valueAttachement = 8;
+		Timestamp valueTime = 9;
+		Timestamp valueDateTime = 10;
+		Period valuePeriod = 11;
+		CodeableConcept dataAbsentReason = 12; // Why the component result is missing
+		CodeableConcept interpretation = 13; // High, low, normal, etc.
+		ReferenceRange referenceRange = 14; // Provides guide for interpretation of component result
+	}
+
+	Identifier identifier = 1; // Business Identifier for observation
+	Reference basedOn = 2; // Fulfills plan, proposal or order
+	string status = 3; // registered | preliminary | final | amended +
+	CodeableConcept category = 4; // Classification of type of observation
+	CodeableConcept code = 5; // Type of observation (code / type)
+	Reference subject = 6; // Who and/or what this is about
+	Reference context = 7; // Healthcare event during which this observation is made
+	Timestamp effectiveDateTime = 8; // Clinically relevant time/time-period for observation
+	Period effectivePeriod = 9;
+	Timestamp issued = 10; // Date/Time this was made available
+	Reference performer = 11; // Who is responsible for the observation
+	Quantity valueQuantity = 12; // Actual result
+	CodeableConcept valueCodeableConcept = 13;
+	string valueString = 14;
+	bool valueBoolean = 15;
+	Range valueRange = 16;
+	Ratio valueRatio = 17;
+	SampledData valueSampledData = 18;
+	Attachement valueAttachement = 19;
+	Timestamp valueTime = 20;
+	Timestamp valueDateTime = 21;
+	Period valuePeriod = 22;
+	CodeableConcept dataAbsentReason = 23; // Why the result is missing
+	CodeableConcept interpretation = 24; // High, low, normal, etc.
+	string comment = 25; // Comments about result
+	CodeableConcept bodySite = 26; // Observed body part
+	CodeableConcept method = 27; // How it was done
+	Reference specimen = 28; // Specimen used for this observation
+	Reference device = 29; // (Measurement) Device
+	ReferenceRange referenceRange = 30; // Provides guide for interpretation
+	Related related = 31; // Resource related to this observation
+	Component component = 32; // Component results
+}
+
+message DiagnosticReport {
+
+	/*
+	A diagnostic report is the set of information that is typically provided by a diagnostic service when investigations are complete. The information includes a mix of atomic results, text reports, images, and codes.
+	The mix varies depending on the nature of the diagnostic procedure, and sometimes on the nature of the outcomes for a particular investigation. 
+	*/
+
+	message Image {
+		string comment = 1; // Comment about the image (e.g. explanation)
+		Reference link = 2; // Reference to the image source
+	}
+
+	message Performer {
+		CodeableConcept role = 1; // Type of performer
+		Reference actor = 2; // Practitioner or Organization participant
+	}
+
+	Identifier identifier = 1; // Business identifier for report
+	Reference basedOn = 2; // What was requested
+	string status = 3; // registered | partial | preliminary | final +
+	CodeableConcept category = 4; // Service category
+	CodeableConcept code = 5; // Name/Code for this diagnostic report
+	Reference subject = 6; // The subject of the report - usually, but not always, the patient
+	Reference context = 7; // Health care event when test ordered
+	Timestamp effectiveDateTime = 8; // Clinically relevant time/time-period for report
+	Period effectivePeriod = 9;
+	Timestamp issued = 10; // DateTime this version was released
+	Performer performer = 11; // Participants in producing the report
+	Reference specimen = 12; // Specimens this report is based on
+	Reference result = 13; // Observations - simple, or complex nested groups
+	Reference imagingStudy = 14; // Reference to full details of imaging associated with the diagnostic report
+	Image image = 15; // Key images associated with this report
+	string conclusion = 16; // Clinical Interpretation of test results
+	CodeableConcept codedDiagnosis = 17; // Codes for the conclusion
+	Attachement presentedForm = 18; // Entire report as issued
+}
+
+message ProcedureRequest {
+
+	/*
+	ProcedureRequest is a record of a request for a procedure to be planned, proposed, or performed, as distinguished by the ProcedureRequest.intent field value, with or on a patient. 
+	Examples of procedures include diagnostic tests/studies, endoscopic procedures, counseling, biopsies, therapies (e.g., physio-, social-, psychological-), (exploratory) surgeries or procedures, 
+	exercises, and other clinical interventions. Procedures may be performed by a healthcare professional, a friend or relative or in some cases by the patient themselves. The procedure will lead to 
+	either a Procedure or DiagnosticReport, that in turn may reference one or more Observations, that summarizes the performance of the procedures and associated documentation such as observations, images, 
+	findings that are relevant to the treatment/management of the subject.
+	*/
+
+	message Requester {
+		Reference agent = 1; // Individual making the request
+		Reference onBehalfOf = 2; // Organization agent is acting for
+	}
+
+	Identifier identifier = 1; // Identifiers assigned to this order
+	Reference definition = 2; // Protocol or definition
+	Reference basedOn = 3; // What request fulfills
+	Reference replaces = 4; // What request replaces
+	Identifier requisition = 5; // Composite Request ID
+	string status = 6; // draft | active | suspended | completed | entered-in-error | cancelled
+	string intent = 7; // proposal | plan | order +
+	string priority = 8; // routine | urgent | asap | stat
+	bool doNotPerform = 9; // True if procedure should not be performed
+	CodeableConcept category = 10; // Classification of procedure
+	CodeableConcept code = 11; // What is being requested/ordered
+	Reference subject = 12; // Individual the service is ordered for
+	Reference context = 13; // Encounter or Episode during which request was created
+	Timestamp occurenceDateTime = 14; // When procedure should occur
+	Period occurencePeriod = 15;
+	Timing occurenceTiming = 16;
+	bool asNeeded = 17; // Preconditions for procedure or diagnostic
+	CodeableConcept asNeededCodeableConcept = 18; // 
+	Timestamp authoredOn = 19; // Date request signed
+	Requester requester = 20; // Who/what is requesting procedure or diagnostic
+	CodeableConcept performerType = 21; // Performer role
+	Reference performer = 22; // Requested perfomer
+	CodeableConcept reasonCode = 23; // Explanation/Justification for test
+	Reference reasonReference = 24; // Explanation/Justification for test
+	Reference supportingInfo = 25; // Additional clinical information
+	Reference specimen = 26; // Procedure Samples
+	CodeableConcept bodySite = 27; // Location on Body
+	Annotation note = 28; // Comments
+	Reference relevantHistory = 29; // Request provenance
+}
+
+message ImagingStudy {
+
+	/*
+	ImagingStudy provides information on a DICOM imaging study, and the series and imaging objects in that study. 
+	It also provides information on how to retrieve that information (in a native DICOM format, or in a rendered format, such as JPEG). 
+	ImagingStudy is used to make available information about all parts of a single DICOM study.
+	*/
+
+	message ISSeries {
+		
+		message Instance {
+			string uid = 1; // Formal DICOM identifier for this instance
+			uint64 number = 2; // The number of this instance in the series
+			string sopClass = 3; // DICOM class type
+			string title = 4; // Description of instance
+		}
+
+		string uid = 1; // Formal DICOM identifier for this series
+		uint64 number = 2; // Numeric identifier of this series
+		Coding modality = 3; // The modality of the instances in the series
+		string description = 4; // A short human readable summary of the series
+		uint64 numberOfInstances = 5; // Number of Series Related Instances
+		string availability = 6; // ONLINE | OFFLINE | NEARLINE | UNAVAILABLE
+		Reference endpoint = 7; // Series access endpoint
+		Coding bodySite = 8; // Body part examined
+		Coding laterality = 9; // Body part laterality
+		Timestamp started = 10; // When the series started
+		Reference performer = 11; // Who performed the series
+		Instance instance = 12; // A single SOP instance from the series
+	}
+
+	string uid = 1; // Formal DICOM identifier for the study
+	Identifier accession = 2; // Related workflow identifier ("Accession Number")
+	Identifier identifier = 3; // Other identifiers for the study
+	string availability = 4; // ONLINE | OFFLINE | NEARLINE | UNAVAILABLE
+	Coding modalityList = 5; // All series modality if actual acquisition modalities
+	Reference patient = 6; // Who the images are of
+	Reference context = 7; // Originating context
+	Timestamp started = 8; // When the study was started
+	Reference basedOn = 9; // Request fulfilled
+	Reference referrer = 10; // Referring physician
+	Reference interpreter = 11; // Who interpreted images
+	Reference endpoint = 12; // Study access endpoint
+	uint64 numberOfSeries = 13; // Number of Study Related Series
+	uint64 numberOfInstances = 14; // Number of Study Related Instances
+	Reference ProcedureReference = 15; // The performed Procedure reference
+	CodeableConcept procedureCode = 16; // The performed procedure code
+	CodeableConcept reason = 17; // Why the study was requested
+	string description = 18; // Institution-generated description
+}
+
+message ImagingManifest {
+
+	/*
+	This resource provides information on a selected set of imaging objects, along with information on how to retrieve those instances
+	(either in native DICOM format, or in a rendered format, such as JPEG), or launch an image viewer. The ImagingManifest is used to make
+	available information concerning images etc. that are intended to be exchanged into other clinical contexts such as diagnostic reports, Care Plans, etc.
+	*/
+
+	message Study {
+
+		message IMSeries {
+
+			message Instance {
+				string sopClass = 1; // SOP class UID of instance
+				string uid = 2; // Selected instance UID
+			}
+
+			string uid = 1; // Series instance UID
+			Reference endpoint = 2; // Series access endpoint
+			Instance instance = 3; // The selected instance
+		}
+
+		string uid = 1; // Study instance UID
+		Reference imagingStudy = 2; // Reference to ImagingStudy
+		Reference endpoint = 3; // Study access service endpoint
+		IMSeries series = 4; // Series identity of the selected instances
+	}
+
+	Identifier identifier = 1; // SOP Instance UID
+	Reference patient = 2; // Patient of the selected objects
+	Timestamp authoringTime = 3; // Time when the selection of instances was made
+	Reference author = 4; // Author (human or machine)
+	string description = 5; // Description text
+	Study study = 6; // Study identity of the selected instances
+}
+
+message Sequence {
+
+	/*
+	The Sequence resource is designed to describe an atomic sequence which contains the alignment sequencing test result and multiple variations. 
+	Atomic sequences can be connected by link element and they will lead to sequence graph. By this method, a sequence can be reported. 
+	Complete genetic sequence information, of which specific genetic variations are a part, is reported by reference to the GA4GH repository.
+	*/
+
+	message ReferenceSeq {
+		CodeableConcept chromosome = 1; // Chromosome containing genetic finding
+		string genomeBuild = 2; // The Genome Build used for reference, following GRCh build versions e.g. 'GRCh 37'
+		CodeableConcept referenceSeqId = 3; // Reference identifier
+		Reference referenceSeqPointer = 4; // A Pointer to another Sequence entity as reference sequence
+		string referenceSeqString = 5; // A string to represent reference sequence
+		int64 strand = 6; // Directionality of DNA ( +1/-1)
+		int64 windowStart = 7; // Start position of the window on the reference sequence
+		int64 windowEnd = 8; // End position of the window on the reference sequence
+	}
+
+	message Variant {
+		int64 start = 1; // Start position of the variant on the reference sequence
+		int64 end = 2; // End position of the variant on the reference sequence
+		string observedAllele = 3; // Allele that was observed
+		string referenceAllele = 4; // Allele in the reference sequence
+		string cigar = 5; // Extended CIGAR string for aligning the sequence with reference bases
+	}
+
+	message Quality {
+		string type = 1; // indel | snp | unknown
+		CodeableConcept standardSequence = 2; // Standard sequence for comparison
+		int64 start = 3; // Start position of the sequence
+		int64 end = 4; // End position of the sequence
+		Quantity score = 5; // Quality score for the comparison
+		CodeableConcept method = 6; // Method to get quality
+		float truthTP = 7; // True positives from the perspective of the truth data
+		float queryTP = 8; // True positives from the perspective of the query data
+		float truthFN = 9; // False negatives
+		float queryFP = 10; // False positives
+		float gtFP = 11; // False positives where the non-REF alleles in the Truth and Query Call Sets match
+		float precision = 12; // Precision of comparison
+		float recall = 13; // Recall of comparison
+		float fScore = 14; // F-score
+	}
+
+	message Repository {
+		string type = 1; // directlink | openapi | login | oauth | other
+		string url = 2; // URI of the repository
+		string name = 3; // Repository's name
+		string datasetId = 4; // Id of the dataset that used to call for dataset in repository
+		string variantsetId = 5; // Id of the variantset that used to call for variantset in repository
+		string readsetId = 6; // Id of the read
+	}
+
+	Identifier identifier = 1; // Unique ID for this particular sequence. This is a FHIR-defined id
+	string type = 2; // aa | dna | rna
+	int64 coordinateSystem = 3; // Base number of coordinate system (0 for 0-based numbering or coordinates, inclusive start, exclusive end, 1 for 1-based numbering, inclusive start, inclusive end)
+	Reference patient = 4; // Who and/or what this is about
+	Reference specimen = 5; // Specimen used for sequencing
+	Reference device = 6; // The method for sequencing
+	Reference performer = 7; // Who should be responsible for test result
+	Quantity quantity = 8; // The number of copies of the seqeunce of interest. (RNASeq)
+	ReferenceSeq referenceSeq = 9; // A sequence used as reference
+	Variant variant = 10; // Start position of the variant on the reference 
+	string observedSeq = 11; // Sequence that was observed
+	Quality quality = 12; // An set of value as quality of sequence
+	int64 readCoverage = 13; // Average number of reads representing a given nucleotide in the reconstructed sequence
+	Repository repository = 14; // External repository which contains detailed report related with observedSeq in this resourc
+	Reference pointer = 15; // Pointer to next atomic sequence
+}
+
+message Specimen {
+
+	/*
+	Any material sample:
+	- taken from a biological entity, living or dead
+	- taken from a physical object or the environment
+	
+	Some specimens are biological and can contain one or more components including but not limited to cellular molecules, cells, tissues, organs, body fluids, embryos, and body excretory products
+	*/
+
+	message Collection {
+		Reference collector = 1; // Who collected the specimen
+		Timestamp collectedDateTime = 2; // Collection time
+		Period collectedPeriod = 3;
+		Quantity quantity = 4; // The quantity of specimen collected
+		CodeableConcept method = 5; // Technique used to perform collection
+		CodeableConcept bodySite = 6; // Anatomical collection site
+	}
+
+	message Processing {
+		string description = 1; // Textual description of procedure
+		CodeableConcept procedure = 2; // Indicates the treatment step applied to the specimen
+		Reference additive = 3; // Material used in the processing step
+		Timestamp timeDateTime = 4; // 	Date and time of specimen processing
+		Period timePeriod = 5;
+	}
+
+	message Container {
+		Identifier identifier = 1; // Id for the container
+		string description = 2; // Textual description of the container
+		CodeableConcept type = 3; // Kind of container directly associated with specimen
+		Quantity capacity = 4; // Container volume or size
+		Quantity specimenQuantity = 5; // Quantity of specimen within container
+		CodeableConcept additiveCodeableConcept = 6; // Additive associated with container
+		Reference additiveReference = 7;
+	}
+
+	Identifier identifier = 1; // External Identifier
+	Identifier accessionIdentifier = 2; // Identifier assigned by the lab
+	string status = 3; // available | unavailable | unsatisfactory | entered-in-error
+	CodeableConcept type = 4; // Kind of material that forms the specimen
+	Reference subject = 5; // Where the specimen came from. This may be from the patient(s) or from the environment or a device
+	Timestamp receivedTime = 6; // The time when specimen was received for processing
+	Reference parent = 7; // Specimen from which this specimen originated
+	Reference request = 8; // Why the specimen was collected
+	Collection collection = 9; // Collection details
+	Processing processing = 10; // Processing and processing step details
+	Container container = 11; // Direct container of specimen (tube/slide, etc.)
+	Annotation note = 12; // Comments
+}
+
+message BodySite {
+
+	/*
+	The BodySite resource contains details about the anatomical location of a specimen or body part, including patient information, identifiers, as well as text descriptions and images. 
+	It provides for the addition of qualifiers such as laterality and directionality to the anatomic location for those use cases where precoordination of codes is not possible. 
+	*/
+
+	Identifier identifier = 1; // Bodysite identifier
+	bool active = 2; // Whether this body site record is in active use
+	CodeableConcept code = 3; // Named anatomical location
+	CodeableConcept qualifier = 4; // Modification to location code
+	string description = 5; // Anatomical location description
+	Attachement image = 6; // Attached images
+	Reference patient = 7; // Who this is about
+}
