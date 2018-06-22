@@ -13,22 +13,59 @@ message AllergyIntolerance {
 	Condition on the problem list, not using AllergyIntolerance.
 	*/
 
-	message Reaction {
+	enum AISeverity {
+		MILD = 0;
+		MODERATE = 1;
+		SEVERE = 2;
+	}
+
+	enum AIClinicalStatus {
+		ACTIVE = 0;
+		INACTIVE = 1;
+		RESOLVED = 2;
+	}
+
+	enum AIVerificationStatus {
+		UNCONFIRMED = 0;
+		CONFIRMED = 1;
+		REFUTED = 2;
+		ENTERED_IN_ERROR = 3;
+	}
+
+	enum AIType {
+		ALLERGY = 0;
+		INTOLERANCE = 1;
+	}
+
+	enum AICategory {
+		FOOD = 0;
+		MEDICATION = 1;
+		ENVIRONMENT = 2;
+		BIOLOGIC = 3;
+	}
+
+	enum AICriticality {
+		LOW = 0;
+		HIGH = 1;
+		UNABLE_TO_ASSESS  = 2;
+	}
+
+	message AIReaction {
 		CodeableConcept substance = 1; // Specific substance or pharmaceutical product considered to be responsible for event
 		CodeableConcept manifestation = 2; // Clinical symptoms/signs associated with the Event
 		string description = 3; // Description of the event as a whole
 		Timestamp onset = 4; // Date(/time) when manifestations showed
-		string severity = 5; // mild | moderate | severe (of event as a whole)
+		AISeverity severity = 5; // mild | moderate | severe (of event as a whole)
 		CodeableConcept exposureRoute = 6; // How the subject was exposed to the substance
 		Annotation note = 7; // Text about event not captured in other fields
 	}
 
 	Identifier identifier = 1; // External ids for this item
-	string clinicalStatus = 2; // active | inactive | resolved
-	string verificationStatus = 3; // unconfirmed | confirmed | refuted | entered-in-error
-	string type = 4; // allergy | intolerance - Underlying mechanism (if known)
-	string category = 5; // food | medication | environment | biologic
-	string criticality = 6; // low | high | unable-to-assess
+	AIClinicalStatus clinicalStatus = 2; // active | inactive | resolved
+	AIVerificationStatus verificationStatus = 3; // unconfirmed | confirmed | refuted | entered-in-error
+	AIType type = 4; // allergy | intolerance - Underlying mechanism (if known)
+	AICategory category = 5; // food | medication | environment | biologic
+	AICriticality criticality = 6; // low | high | unable-to-assess
 	CodeableConcept code = 7; // Code that identifies the allergy or intolerance
 	Reference patient = 8; // Who the sensitivity is for
 	Timestamp onsetDateTime = 9; // When allergy or intolerance was identified
@@ -41,7 +78,7 @@ message AllergyIntolerance {
 	Reference asserter = 16; // Date(/time) of last known occurrence of a reaction
 	Timestamp lastOccurence = 17;
 	Annotation note = 18; // Additional text not captured in other fields
-	Reaction reaction = 19; // Adverse Reaction Events linked to exposure to substance
+	repeated AIReaction reaction = 19; // Adverse Reaction Events linked to exposure to substance
 }
 
 message Condition {
@@ -61,20 +98,42 @@ message Condition {
 	it belongs on a practitioner’s Problem List.
 	*/
 
-	message Stage {
+	enum CTClinicalStatus {
+		ACTIVE = 0;
+		RECURRENCE = 1;
+		INACTIVE = 2;
+		REMISSION = 3;
+		RESOLVED = 4;
+	}
+
+	enum CTVerficationStatus {
+		PROVISIONAL = 0;
+		DIFFERENTIAL = 1;
+		CONFIRMED = 2;
+		REFUTED = 3;
+		ENTERED_IN_ERROR = 4;
+		UNKNOWN = 5;
+	}
+
+	enum CTCategory {
+		PROBLEM_LIST_ITEM = 0;
+		ENCOUNTER_DIAGNOSIS = 1;
+	}
+
+	message CTStage {
 		CodeableConcept summary = 1; // Simple summary (disease specific)
 		Reference assessment = 2; // Formal record of assessment
 	}
 
-	message Evidence {
+	message CTEvidence {
 		CodeableConcept code = 1; // Manifestation/symptom
 		Reference detail = 2; // Supporting information found elsewhere
 	}
 
 	Identifier identifier = 1; // External Ids for this condition
-	string clinicalStatus = 2; // active | recurrence | inactive | remission | resolved
-	string verificationStatus = 3; // provisional | differential | confirmed | refuted | entered-in-error | unknown
-	CodeableConcept category = 4; // problem-list-item | encounter-diagnosis
+	CTClinicalStatus clinicalStatus = 2; // active | recurrence | inactive | remission | resolved
+	CTVerficationStatus verificationStatus = 3; // provisional | differential | confirmed | refuted | entered-in-error | unknown
+	CTCategory category = 4; // problem-list-item | encounter-diagnosis
 	CodeableConcept severity = 5; // Subjective severity of condition
 	CodeableConcept code = 6; // Identification of the condition, problem or diagnosis
 	CodeableConcept bodySite = 7; // Anatomical location, if relevant
@@ -93,8 +152,8 @@ message Condition {
 	string abatementString = 20;
 	Timestamp assertedDate = 21; // Date record was believed accurate
 	Reference asserter = 22; // Person who asserts this condition
-	Stage stage = 23; // Stage/grade, usually assessed formally
-	Evidence evidence = 24; // Supporting evidence
+	CTStage stage = 23; // Stage/grade, usually assessed formally
+	CTEvidence evidence = 24; // Supporting evidence
 	Annotation note = 25; // Additional information about the Condition
 }
 
@@ -105,12 +164,21 @@ message Procedure {
 	diagnostic procedures, endoscopic procedures, biopsies, counseling, physiotherapy, exercise, etc. Procedures may be performed by a healthcare professional, a friend or relative or in some cases by the patient themselves.
 	*/
 
-	message FocalDevice {
+	enum PCStatus {
+		PREPARATION = 0;
+		IN_PROGRESS = 1;
+		SUSPENDED = 2;
+		ABORTED = 3;
+		COMPLETED = 4;
+		ENTERED_IN_ERROR = 5;
+	}
+
+	message PCFocalDevice {
 		CodeableConcept action = 1; // Kind of change to device
 		Reference manipulated = 2; // Device that was changed
 	}
 
-	message Performer {
+	message PCPerformer {
 		CodeableConcept role = 1; // The role the actor was in
 		Reference actor = 2; // The reference to the practitioner
 		Reference onBehalfOf = 3; // Organization the device or practitioner was acting for
@@ -120,7 +188,7 @@ message Procedure {
 	Reference definition = 2; // Instantiates protocol or definition
 	Reference basedOn = 3; // A request for this procedure
 	Reference partOf = 4; // Part of referenced event
-	string status = 5; // preparation | in-progress | suspended | aborted | completed | entered-in-error | unknown
+	PCStatus status = 5; // preparation | in-progress | suspended | aborted | completed | entered-in-error | unknown
 	bool notDone = 6; // True if procedure was not performed as scheduled
 	CodeableConcept notDoneReason = 7; // Reason procedure was not performed
 	CodeableConcept category = 8; // Classification of the procedure
@@ -129,7 +197,7 @@ message Procedure {
 	Reference context = 11; // Encounter or episode associated with the procedure
 	Timestamp performedDateTime = 12; // Date/Period the procedure was performed
 	Period performedPeriod = 13;
-	repeated Performer performer = 14; // The people who performed the procedure
+	repeated PCPerformer performer = 14; // The people who performed the procedure
 	Reference location = 15; // Where the procedure happened
 	CodeableConcept reasonCode = 16; // Coded reason procedure performed
 	Reference reasonReference = 17; // Condition that is the reason the procedure performed
@@ -140,7 +208,7 @@ message Procedure {
 	Reference complicationDetail = 22; // A condition that is a result of the procedure
 	CodeableConcept followUp = 23; // Instructions for follow up
 	Annotation note = 24; // Additional information about the procedure
-	FocalDevice focalDevice = 25; // Device changed in procedure
+	PCFocalDevice focalDevice = 25; // Device changed in procedure
 	repeated Reference usedReference = 26; // Items used during procedure
 	CodeableConcept usedCode = 27; // Coded items used during the procedure
 }
@@ -156,7 +224,21 @@ message FamilyMemberHistory {
 	This resource represents a simple structure used to capture an 'elementary' family history for a particular family member. However, it can also be the basis for capturing a more rigorous history useful for genetic and other analysis
 	*/
 
-	message FamilyCondition {
+	enum FMHStatus {
+		PARTIAL = 0;
+		COMPLETED = 1;
+		ENTERED_IN_ERROR = 2;
+		HEALTH_UNKNOWN = 3;
+	}
+
+	enum FMHGender {
+		MALE = 0;
+		FEMALE = 1;
+		OTHER = 2;
+		UNKNOWN = 3;
+	}
+
+	message FMHCondition {
 		CodeableConcept code = 1; // Condition suffered by relation
 		CodeableConcept outcome = 2; // deceased | permanent disability | etc.
 		Quantity onsetAge = 3; // When condition first manifested
@@ -168,14 +250,14 @@ message FamilyMemberHistory {
 
 	Identifier identifier = 1; // External Id(s) for this record
 	Reference definition = 2; // Instantiates protocol or definition
-	string status = 3; // partial | completed | entered-in-error | health-unknown
+	FMHStatus status = 3; // partial | completed | entered-in-error | health-unknown
 	bool notDone = 4; // The taking of a family member's history did not occur
 	CodeableConcept notDoneReason = 5; // subject-unknown | withheld | unable-to-obtain | deferred
 	Reference patient = 6; // Patient history is about
 	Timestamp date = 7; // When history was captured/updated
 	string name = 8; // The family member described
 	CodeableConcept relationship = 9; // Relationship to the subject
-	string gender = 10; // male | female | other | unknown
+	FMHGender gender = 10; // male | female | other | unknown
 	Period bornPeriod = 11; // (approximate) date of birth
 	Timestamp bornDate = 12;
 	string bornString = 13;
@@ -191,7 +273,7 @@ message FamilyMemberHistory {
 	CodeableConcept reasonCode = 23; // Why was family member history performed?
 	Reference reasonReference = 24; // Why was family member history performed?
 	Annotation note = 25; // General note about related person
-	FamilyCondition condition = 26; // Condition that the related person had
+	FMHCondition condition = 26; // Condition that the related person had
 }
 
 message CarePlan {
@@ -204,16 +286,53 @@ message CarePlan {
 	This resource takes an intermediate approach to complexity. It captures basic details about who is involved and what actions are intended without dealing in discrete data about dependencies and timing relationships. These can be supported where necessary using the extension mechanism.
 	*/
 
-	message Activity {
+	enum CPCategory {
+		DIET = 0;
+		DRUG = 1;
+		ENCOUNTER = 2;
+		OBSERVATION = 3;
+		PROCEDURE = 4;
+		SUPPLY = 5;
+		OTHER = 6;
+	}
 
-		message Detail {
-			CodeableConcept category = 1; // diet | drug | encounter | observation | procedure | supply | other
+	enum CPDStatus {
+		NOT_STARTED = 0;
+		SCHEDULED = 1;
+		IN_PROGRESS = 2;
+		ON_HOLD = 3;
+		COMPLETED = 4;
+		CANCELLED = 5;
+		UNKNOWN = 6;
+	}
+
+	enum CDStatus {
+		DRAFT = 0;
+		ACTIVE = 1;
+		SUSPENDED = 2;
+		COMPLETED = 3;
+		ENTERED_IN_ERROR = 4;
+		CANCELLED = 5;
+		UNKNOWN = 6;
+	}
+
+	enum CDIntent {
+		PROPOSAL = 0;
+		PLAN = 1;
+		ORDER = 2;
+		OPTION = 3;
+	}
+
+	message CPActivity {
+
+		message CPDetail {
+			CPCategory category = 1; // diet | drug | encounter | observation | procedure | supply | other
 			Reference definition = 2; // Protocol or definition
 			CodeableConcept code = 3; // Detail type of activity
 			CodeableConcept reasonCode = 4; // Why activity should be done or why activity was prohibited
 			Reference reasonReference = 5; // Condition triggering need for activity
-			Reference goal = 6; // Goals this activity relates to
-			string status = 7; // not-started | scheduled | in-progress | on-hold | completed | cancelled | unknown
+			repeated Reference goal = 6; // Goals this activity relates to
+			CPDStatus status = 7; // not-started | scheduled | in-progress | on-hold | completed | cancelled | unknown
 			string statusReason = 8; // Reason for current status
 			bool prohibited = 9; // Do NOT do
 			Timing scheduledTiming = 10; // When activity is to occur
@@ -221,7 +340,7 @@ message CarePlan {
 			string scheduledString = 12;
 			Reference location = 13; // Where it should happen
 			Reference performer = 14; // Who will be responsible?
-			CodeableConcept productCodeableConcept = 15; // // What is to be administered/supplied
+			CodeableConcept productCodeableConcept = 15; // What is to be administered/supplied
 			Reference productReference = 16; 
 			Quantity dailyAmount = 17; // How to consume/day?
 			Quantity quantity = 18; // How much to administer/supply/consume
@@ -233,7 +352,7 @@ message CarePlan {
 		Reference outcomeReference = 2; // Appointment, Encounter, Procedure, etc.
 		Annotation progress = 3; // Comments about the activity status/progress
 		Reference reference = 4; // Activity details defined in specific resource
-		Detail detail = 5; // In-line definition of activity
+		CPDetail detail = 5; // In-line definition of activity
 	}
 
 	Identifier identifier = 1; // External Ids for this plan
@@ -241,8 +360,8 @@ message CarePlan {
 	Reference basedOn = 3; // Fulfills care plan
 	Reference replaces = 4; // CarePlan replaced by this CarePlan
 	Reference partOf = 5; // Part of referenced CarePlan
-	string status = 6; // draft | active | suspended | completed | entered-in-error | cancelled | unknown
-	string intent = 7; // proposal | plan | order | option
+	CDStatus status = 6; // draft | active | suspended | completed | entered-in-error | cancelled | unknown
+	CDIntent intent = 7; // proposal | plan | order | option
 	CodeableConcept category = 8; // Type of plan
 	string title = 9; // Human-friendly name for the CarePlan
 	string description = 10; // Summary of nature of plan
@@ -254,7 +373,7 @@ message CarePlan {
 	Reference addresses = 16; // Health issues this plan addresses
 	Reference supportingInfo = 17; // Information considered as part of plan
 	Reference goal = 18; // Desired outcome of plan
-	Activity activity = 20; // Action to occur as part of plan
+	CPActivity activity = 20; // Action to occur as part of plan
 	Annotation note = 21; // Comments about the plan
 }
 
@@ -270,16 +389,29 @@ message DetectedIssue {
 	- Duplicate therapy
 	*/
 
-	message Mitigation {
+	enum DIStatus {
+		REGISTERED = 0;
+		PRELIMINARY = 1;
+		FINAL = 2;
+		AMENDED = 3;
+	}
+
+	enum DISeverity {
+		HIGH = 0;
+		MODERATE = 1;
+		LOW = 2;
+	}
+
+	message DIMitigation {
 		CodeableConcept action = 1; // What mitigation?
 		Timestamp date = 2; // Date committed
 		Reference author = 3; // Who is committing?
 	}
 
 	Identifier identifier = 1; // Unique id for the detected issue
-	string status = 2; // registered | preliminary | final | amended +
+	DIStatus status = 2; // registered | preliminary | final | amended +
 	CodeableConcept category = 3; // Issue Category, e.g. drug-drug, duplicate therapy, etc.
-	string severity = 4; // high | moderate | low
+	DISeverity severity = 4; // high | moderate | low
 	Reference patient = 5; // Associated patient
 	Timestamp date = 6; // When identified
 	Reference author = 7; // The provider or device that identified the issue
@@ -303,7 +435,14 @@ message RiskAssessment {
 	subjective assessment of the patient's risk based on existing knowledge and previous experience.
 	*/
 
-	message Prediction {
+	enum RAStatus {
+		REGISTERED = 0;
+		PRELIMINARY = 1;
+		FINAL = 2;
+		AMENDED = 3;
+	}
+
+	message RAPrediction {
 		CodeableConcept outcome = 1; // Possible outcome for the subject
 		float probabilityDecimal = 2; // Likelihood of specified outcome
 		Range probabilityRange = 3;
@@ -317,7 +456,7 @@ message RiskAssessment {
 	Identifier identifier = 1; // Unique identifier for the assessment
 	Reference basedOn = 2; // Request fulfilled by this assessment
 	Reference parent = 3; // Part of this occurrence
-	string status = 4; // registered | preliminary | final | amended +
+	RAStatus status = 4; // registered | preliminary | final | amended +
 	CodeableConcept method = 5; // Evaluation mechanism
 	CodeableConcept code = 6; // Type of assessment
 	Reference subject = 7; // Who/what does assessment apply to?
@@ -329,7 +468,7 @@ message RiskAssessment {
 	CodeableConcept reasonCodeableConcept = 13; // Why the assessment was necessary?
 	Reference reasonReference = 14; // 
 	Reference basis = 15; // Information used in assessment
-	Prediction prediction = 16; // Outcome predicted
+	RAPrediction prediction = 16; // Outcome predicted
 	string mitigation = 17; // How to reduce risk
 	string comment = 18; // Comments on the risk assessment
 }
@@ -342,7 +481,32 @@ message AdverseEvent {
 	Health care organizations monitor and report both adverse events as well as events that had the potential to cause patient harm. Data are often aggregated for reporting purposes.
 	*/
 
-	message SuspectEntity {
+	enum AECategory {
+		AE = 0;
+		PAE = 1;
+	}
+
+	enum AEType {
+		ACTUAL = 0;
+		POTENTIAL = 1;
+	}
+
+	enum AESeriousness {
+		MILD = 0;
+		MODERATE = 1;
+		SEVERE = 2;
+	}
+
+	enum AEOutcome {
+		RESOLVED = 0;
+		RECOVERING = 1;
+		ONGOING = 2;
+		RESOLVED_WITH_SEQUEL_AE = 3;
+		FATAL = 4;
+		UNKNOWN = 5;
+	}
+
+	message AESuspectEntity {
 		Reference instance = 1; // Refers to the specific entity that caused the adverse event
 		string causality = 2; // causality1 | causality2
 		CodeableConcept causalityAssessment = 3; // assess1 | assess2
@@ -353,18 +517,18 @@ message AdverseEvent {
 	}
 
 	Identifier identifier = 1; // Business identifier for the event
-	string category = 2; // AE | PAE An adverse event is an event that caused harm to a patient, an adverse reaction is a something that is a subject-specific event that is a result of an exposure to a medication, food, device or environmental substance, a potential adverse event is something that occurred and that could have caused harm to a patient but did not
-	CodeableConcept type = 3; // actual | potential
+	AECategory category = 2; // AE | PAE An adverse event is an event that caused harm to a patient, an adverse reaction is a something that is a subject-specific event that is a result of an exposure to a medication, food, device or environmental substance, a potential adverse event is something that occurred and that could have caused harm to a patient but did not
+	AEType type = 3; // actual | potential
 	Reference subject = 4; // Subject or group impacted by event
 	Timestamp date = 5; // When the event occurred
 	Reference reaction = 6; // Adverse Reaction Events linked to exposure to substance
 	Reference location = 7; // Location where adverse event occurred
-	CodeableConcept seriousness = 8; // Mild | Moderate | Severe
-	CodeableConcept outcome = 9; // resolved | recovering | ongoing | resolvedWithSequelae | fatal | unknown
+	AESeriousness seriousness = 8; // Mild | Moderate | Severe
+	AEOutcome outcome = 9; // resolved | recovering | ongoing | resolvedWithSequelae | fatal | unknown
 	Reference recorder = 10; // Who recorded the adverse event
-	Reference eventParticipant = 11; // Who was involved in the adverse event or the potential adverse event
+	repeated Reference eventParticipant = 11; // Who was involved in the adverse event or the potential adverse event
 	string description = 12; // Description of the adverse event
-	SuspectEntity suspectEntity = 13; // The suspected agent causing the adverse event
+	AESuspectEntity suspectEntity = 13; // The suspected agent causing the adverse event
 	Reference subjectMedicalHistory = 14; // AdverseEvent.subjectMedicalHistory
 	Reference referenceDocument = 15; // AdverseEvent.referenceDocument
 	Reference study = 16; // AdverseEvent.study
@@ -386,7 +550,29 @@ message Goal {
 	When dealing with groups, goals may also reflect health state, such as a reduction of addiction behaviors. However, they may also reflect population health objectives such as education, screening, etc.
 	*/
 
-	message Target {
+	enum GLStatus {
+		PROPOSAL = 0;
+		ACCEDPTED = 1;
+		PLANNED = 2;
+		IN_PROGRESS = 3;
+		ON_TARGET = 4;
+		AHEAD_OF_TARGET = 5;
+		BEHIND_TARGET = 6;
+		SUSTAINING = 7;
+		ACHIEVED = 8;
+		ON_HOLD = 9;
+		CANCELLED = 10;
+		ENTERED_IN_ERROR = 11;
+		REJECTED = 12;
+	}
+
+	enum GLPriority {
+		HIGH_PRIORITY = 0;
+		MEDIUM_PRIORITY = 1;
+		LOW_PRIORITY = 2;
+	}
+
+	message GLTarget {
 		CodeableConcept measure = 1; // The parameter whose value is being tracked
 		Quantity detailQuantity = 2; // The target value to be achieved
 		Range detailRange = 3;
@@ -396,18 +582,18 @@ message Goal {
 	}
 
 	Identifier identifier = 1; // External Ids for this goal
-	string status = 2; // proposed | accepted | planned | in-progress | on-target | ahead-of-target | behind-target | sustaining | achieved | on-hold | cancelled | entered-in-error | rejected
+	GLStatus status = 2; // proposed | accepted | planned | in-progress | on-target | ahead-of-target | behind-target | sustaining | achieved | on-hold | cancelled | entered-in-error | rejected
 	CodeableConcept category = 3; // E.g. Treatment, dietary, behavioral, etc.
-	CodeableConcept priority = 4; // high-priority | medium-priority | low-priority
+	GLPriority priority = 4; // high-priority | medium-priority | low-priority
 	CodeableConcept description = 5; // Code or text describing goal
 	Reference subject = 6; // Who this goal is intended for
 	Timestamp startDate = 7; // When goal pursuit begins
 	CodeableConcept startCodeableConcept = 8; 
-	Target target = 9; // // Target outcome for the goal
+	GLTarget target = 9; // // Target outcome for the goal
 	Timestamp statusDate = 10; // When goal status took effect
 	string statusReason = 11; // Reason for current status
 	Reference expressedBy = 12; // Who's responsible for creating Goal?
-	Reference addresses = 13; // Issues addressed by this goal
+	repeated Reference addresses = 13; // Issues addressed by this goal
 	Annotation note = 14; // Comments about the goal
 	CodeableConcept outcomeCode = 15; // What result was achieved regarding the goal?
 	Reference outcomeReference = 16; // Observation that resulted from goal
@@ -421,7 +607,15 @@ message CareTeam {
 	particular care plan, an episode, an encounter, or may reflect all known team members across these perspectives.
 	*/
 
-	message Participant {
+	enum CTStatus {
+		PROPOSED = 0;
+		ACTIVE = 1;
+		SUSPENDED = 2;
+		INACTIVE = 3;
+		ENTERED_IN_ERROR = 4;
+	}
+
+	message CTParticipant {
 		CodeableConcept role = 1; // Type of involvement
 		Reference member = 2; // Who is involved
 		Reference onBehalfOf = 3; // Organization of the practitioner
@@ -429,13 +623,13 @@ message CareTeam {
 	}
 
 	Identifier identifier = 1; // External Ids for this team
-	string status = 2; // proposed | active | suspended | inactive | entered-in-error
+	CTStatus status = 2; // proposed | active | suspended | inactive | entered-in-error
 	CodeableConcept category = 3; // Type of team
 	string name = 4; // Name of the team, such as crisis assessment team
 	Reference subject = 5; // Who care team is for
 	Reference context = 6; // Encounter or episode associated with CareTeam
 	Period period = 7; // Time period team covers
-	Participant participant = 8; // Members of the team
+	CTParticipant participant = 8; // Members of the team
 	CodeableConcept reasonCode = 9; // Why the care team exists
 	Reference reasonReference = 10; // Why the care team exists
 	Reference managingOrganization = 11; // Organization responsible for the care team
@@ -451,13 +645,19 @@ message ClinicalImpression {
 	differential diagnosis, and there is a continuum between these. This resource is intended to be used to cover all these use cases.
 	*/
 
-	message Finding {
+	enum CIStatus {
+		DRAFT = 0;
+		COMPLETED = 1;
+		ENTERED_IN_ERROR = 2;
+	}
+
+	message CIFinding {
 		CodeableConcept itemCodeableConcept = 1; // What was found
 		Reference itemReference = 2;
 		string basis = 3; // Which investigations support finding
 	}
 
-	message Investigation {
+	message CIInvestigation {
 		CodeableConcept code = 1; // A name/code for the set
 		Reference item = 2; // Record of a specific investigation
 	}
@@ -474,10 +674,10 @@ message ClinicalImpression {
 	Reference assessor = 10; // The clinician performing the assessment
 	Reference previous = 11; // Reference to last assessment
 	Reference problem = 12; // Relevant impressions of patient state
-	Investigation investigation = 13; // One or more sets of investigations (signs, symptions, etc.)
+	repeated CIInvestigation investigation = 13; // One or more sets of investigations (signs, symptions, etc.)
 	string protocol = 14; // Clinical Protocol followed
 	string summary = 15; // Summary of the assessment
-	Finding finding = 16; // Possible or likely findings and diagnoses
+	CIFinding finding = 16; // Possible or likely findings and diagnoses
 	CodeableConcept prognosisCodeableConcept = 17; // Estimate of likely outcome
 	Reference prognosisReference = 18; // RiskAssessment expressing likely outcome
 	Reference action = 19; // Action taken as part of assessment procedure
