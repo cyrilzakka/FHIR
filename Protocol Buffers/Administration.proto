@@ -64,14 +64,14 @@ message Patient {
 	Timestamp birthDate = 6; // The date of birth for the individual
 	bool deceasedBoolean = 7; // Indicates if the individual is deceased or not
 	Timestamp deceasedDateTime = 8;
-	repeated Address address = 9; // Addresses for the individual
+	Address address = 9; // Addresses for the individual
 	CodeableConcept maritalStatus = 10; // Marital (civil) status of a patient
 	bool multipleBirthBoolean = 11; // Whether patient is part of a multiple birth
 	uint64 multipleBirthInteger = 12;
 	Attachement photo = 13; // Image of the patient
-	repeated Contact contact = 14; // A contact party (e.g. guardian, partner, friend) for the patient
+	Contact contact = 14; // A contact party (e.g. guardian, partner, friend) for the patient
 	Animal animal = 15; // This patient is known to be an animal (non-human)
-	repeated Communication communication = 16; // A list of Languages which may be used to communicate with the patient about his or her health
+	Communication communication = 16; // A list of Languages which may be used to communicate with the patient about his or her health
 	Reference generalPracticioner = 17; // Patient's nominated primary care provider
 	Reference managingOrganization = 18; // Organization that is the custodian of the patient record
 	Link link = 19; // Link to another patient resource that concerns the same actual person
@@ -101,14 +101,14 @@ message Practicioner {
 
 	Identifier identifier = 1; // A identifier for the person as this agent
 	bool active = 2; // Whether this practitioner's record is in active use
-	repeated HumanName name = 3; // The name(s) associated with the practitioner
+	HumanName name = 3; // The name(s) associated with the practitioner
 	ContactPoint telecom = 4; // A contact detail for the practitioner (that apply to all roles)
 	Address address = 5; // Address(es) of the practitioner that are not role specific (typically home address)
 	PCGender gender = 6; // male | female | other | unknown
 	Timestamp birthDate = 7; // The date on which the practitioner was born
 	Attachement photo = 8; // Image of the person
-	repeated PCQualification qualification = 9; // Qualifications obtained by training and certification
-	repeated CodeableConcept communication = 10; // A language the practitioner is able to use in patient communication
+	PCQualification qualification = 9; // Qualifications obtained by training and certification
+	CodeableConcept communication = 10; // A language the practitioner is able to use in patient communication
 }
 
 message Device {
@@ -176,15 +176,15 @@ message Organization {
 	message OGContact {
 		CodeableConcept purpose = 1; // The type of contact
 		HumanName name = 2; // A name associated with the contact
-		repeated ContactPoint telecom = 3; // Contact details (telephone, email, etc.) for a contact
-		repeated Address address = 4; // Visiting or postal addresses for the contact
+		ContactPoint telecom = 3; // Contact details (telephone, email, etc.) for a contact
+		Address address = 4; // Visiting or postal addresses for the contact
 	}
 
 	Identifier identifier = 1; // Identifies this organization across multiple systems
 	bool active = 2; // Whether the organization's record is still in active use
 	CodeableConcept type = 3; // Kind of organization
 	string name = 4; // Name used for the organization
-	repeated string alias = 5; // A list of alternate names that the organization is known as, or was known as in the past
+	string alias = 5; // A list of alternate names that the organization is known as, or was known as in the past
 	ContactPoint telecom = 6; // A contact detail for the organization
 	Address address = 7; // An address for the organization
 	Reference partOf = 8; // The organization of which this organization forms a part
@@ -223,11 +223,11 @@ message Location {
 	LTStatus status = 2; // active | suspended | inactive
 	Coding operationalStatus = 3; // The Operational status of the location (typically only for a bed/room)
 	string name = 4; // Name of the location as used by humans
-	repeated string alias = 5; // A list of alternate names that the location is known as, or was known as in the past
+	string alias = 5; // A list of alternate names that the location is known as, or was known as in the past
 	string description = 6; // Additional details about the location that could be displayed as further information to identify the location beyond its name
 	LTMode mode = 7; // instance | kind
 	CodeableConcept type = 8; // Type of function performed
-	repeated ContactPoint telecom = 9; // Contact details of the location
+	ContactPoint telecom = 9; // Contact details of the location
 	Address address = 10; // Physical location
 	CodeableConcept physicalType = 11; // Physical form of the location
 	LTPosition positon = 12; // The absolute geographic location
@@ -272,23 +272,23 @@ message HealthcareService {
 	Reference providedBy = 3; // Organization that provides this service
 	CodeableConcept category = 4; // Broad category of service being performed or delivered
 	CodeableConcept type = 5; // Type of service that may be delivered or performed
-	repeated CodeableConcept specialty = 6; // Specialties handled by the HealthcareService
-	repeated Reference location = 7; // Location(s) where service may be provided
+	CodeableConcept specialty = 6; // Specialties handled by the HealthcareService
+	Reference location = 7; // Location(s) where service may be provided
 	string name = 8; // Description of service as presented to a consumer while searching
 	string comment = 9; // Additional description and/or any specific issues not covered elsewhere
 	string extraDetails = 10; // Extra details about the service that can't be placed in the other fields
 	Attachement photo = 11; // Facilitates quick identification of the service
-	repeated ContactPoint telecom = 12; // Contacts related to the healthcare service
-	repeated Reference coverageArea = 13; // Location(s) service is intended for/available to
-	repeated CodeableConcept serviceProvisionCode = 14; // Conditions under which service is available/offered
-	repeated CodeableConcept eligibility = 15; // Specific eligibility requirements required to use the service
+	ContactPoint telecom = 12; // Contacts related to the healthcare service
+	Reference coverageArea = 13; // Location(s) service is intended for/available to
+	CodeableConcept serviceProvisionCode = 14; // Conditions under which service is available/offered
+	CodeableConcept eligibility = 15; // Specific eligibility requirements required to use the service
 	string eligibilityNote = 16; // Describes the eligibility conditions for the service
-	repeated string programName = 17; // Program Names that categorize the service
-	repeated CodeableConcept characteristic = 18; // Collection of characteristics (attributes)
-	repeated CodeableConcept referralMethod = 19; // Ways that the service accepts referrals
+	string programName = 17; // Program Names that categorize the service
+	CodeableConcept characteristic = 18; // Collection of characteristics (attributes)
+	CodeableConcept referralMethod = 19; // Ways that the service accepts referrals
 	bool appointmentRequired = 20; // If an appointment is required for access to this service
-	repeated HSAvailableTime availableTime = 21; // Times the Service Site is available
-	repeated HSNotAvailable notAvailable = 22; // Not available during this time due to provided reason
+	HSAvailableTime availableTime = 21; // Times the Service Site is available
+	HSNotAvailable notAvailable = 22; // Not available during this time due to provided reason
 	string availabilityExceptions = 23; // Description of availability exceptions
 	Reference endpoint = 24; // Technical endpoints providing access to services operated for the location
 }
@@ -312,7 +312,7 @@ message RelatedPerson {
 	Reference patient = 3; // The patient this person is related to
 	CodeableConcept relationship = 4; // The nature of the relationship
 	HumanName name = 5; // A name associated with the person
-	repeated ContactPoint telecom = 6; // A contact detail for the person
+	ContactPoint telecom = 6; // A contact detail for the person
 	RPGender gender = 7; // male | female | other | unknown
 	Timestamp birthDate = 8; // The date on which the related person was born
 	Address address = 9; // Address where the related person can be contacted or visited
@@ -361,11 +361,11 @@ message Group {
 	bool active = 2; // Whether this group's record is in active use
 	GPType type = 3; // person | animal | practitioner | device | medication | substance
 	bool actual = 4; // Descriptive or actual
-	repeated CodeableConcept code = 5; // Kind of Group members
+	CodeableConcept code = 5; // Kind of Group members
 	string name = 6; // Label for Group
 	uint64 quantity = 7; // Number of members
-	repeated GPCharacteristic characteristic = 8; // Trait of group members
-	repeated GPMember member = 9; // Who or what is in group
+	GPCharacteristic characteristic = 8; // Trait of group members
+	GPMember member = 9; // Who or what is in group
 }
 
 message PracticionerRole {
@@ -401,13 +401,13 @@ message PracticionerRole {
 	Period period = 3; // The period during which the practitioner is authorized to perform in these role(s)
 	Reference practitioner = 4; // Practitioner that is able to provide the defined services for the organation
 	Reference organization = 5; // Organization where the roles are available
-	repeated CodeableConcept code = 6; // Roles which this practitioner may perform
+	CodeableConcept code = 6; // Roles which this practitioner may perform
 	CodeableConcept specialty = 7; // Specific specialty of the practitioner
-	repeated Reference location = 8; // The location(s) at which this practitioner provides care
+	Reference location = 8; // The location(s) at which this practitioner provides care
 	Reference healthcareService = 9; // The list of healthcare services that this worker provides for this role's Organization/Location(s)
-	repeated ContactPoint telecom = 10; // Contact details that are specific to the role/location/service
-	repeated PRAvailableTime availableTime = 11; // Times the Service Site is available
-	repeated PRNotAvailable notAvailable = 12; // Not available during this time due to provided reason
+	ContactPoint telecom = 10; // Contact details that are specific to the role/location/service
+	PRAvailableTime availableTime = 11; // Times the Service Site is available
+	PRNotAvailable notAvailable = 12; // Not available during this time due to provided reason
 	string availabilityExceptions = 13; // Description of availability exceptions
 	Reference endpoint = 14; // Technical endpoints providing access to services operated for the practitioner with this role
 }
@@ -435,7 +435,7 @@ message Endpoint {
 	Coding connectionType = 3; // Protocol/Profile/Standard to be used with this endpoint connection
 	string name = 4; // A name that this endpoint can be identified by
 	Reference managingOrganization = 5; // Organization that manages this endpoint (may not be the organization that exposes the endpoint)
-	repeated ContactPoint contact = 6; // Contact details for source (e.g. troubleshooting)
+	ContactPoint contact = 6; // Contact details for source (e.g. troubleshooting)
 	Period period = 7; // Interval the endpoint is expected to be operational
 	CodeableConcept payloadType = 8; // The type of content that may be used at this endpoint (e.g. XDS Discharge summaries)
 	string payloadMimeType = 9; // Mimetype to send. If not specified, the content could be anything (including no payload, if the connectionType defined this)
@@ -473,16 +473,16 @@ message EpisodeOfCare {
 
 	Identifier identifier = 1; // Business Identifier(s) relevant for this EpisodeOfCare
 	ECStatus status = 2; // planned | waitlist | active | onhold | finished | cancelled | entered-in-error
-	repeated ECStatusHistory statusHistory = 3; // Past list of status codes (the current status may be included to cover the start date of the status)
+	ECStatusHistory statusHistory = 3; // Past list of status codes (the current status may be included to cover the start date of the status)
 	CodeableConcept type = 4; // Type/class - e.g. specialist referral, disease management
-	repeated ECDiagnosis diagnosis = 5; // The list of diagnosis relevant to this episode of care
+	ECDiagnosis diagnosis = 5; // The list of diagnosis relevant to this episode of care
 	Reference patient = 6; // The patient who is the focus of this episode of care
 	Reference managingOrganization = 7; // Organization that assumes care
 	Period period = 8; // Interval during responsibility is assumed
-	repeated Reference referralRequest = 9; // Originating Referral Request(s)
+	Reference referralRequest = 9; // Originating Referral Request(s)
 	Reference careManager = 10; // Care manager/care co-ordinator for the patient
-	repeated Reference team = 11; // Other practitioners facilitating this episode of care
-	repeated Reference account = 12; // The set of accounts that may be used for billing for this EpisodeOfCare
+	Reference team = 11; // Other practitioners facilitating this episode of care
+	Reference account = 12; // The set of accounts that may be used for billing for this EpisodeOfCare
 }
 
 message Encounter {
@@ -528,7 +528,7 @@ message Encounter {
 	message ECParticipant {
 		CodeableConcept type = 1; // Role of participant in encounter
 		Period period = 2; // Period of time during the encounter that the participant participated
-		repeated Reference individual = 3; // Persons involved in the encounter other than the patient
+		Reference individual = 3; // Persons involved in the encounter other than the patient
 	}
 
 	message ECDiagnosis {
@@ -542,9 +542,9 @@ message Encounter {
 		Reference origin = 2; // The location from which the patient came before admission
 		CodeableConcept admitSource = 3; // From where patient was admitted (physician referral, transfer)
 		CodeableConcept reAdmission = 4; // The type of hospital re-admission that has occurred (if any). If the value is absent, then this is not identified as a readmission
-		repeated CodeableConcept dietPreference = 5; // Diet preferences reported by the patient
-		repeated CodeableConcept specialCourtesy = 6; // Special courtesies (VIP, board member)
-		repeated CodeableConcept specialArrangement = 7; // Wheelchair, translator, stretcher, etc.
+		CodeableConcept dietPreference = 5; // Diet preferences reported by the patient
+		CodeableConcept specialCourtesy = 6; // Special courtesies (VIP, board member)
+		CodeableConcept specialArrangement = 7; // Wheelchair, translator, stretcher, etc.
 		Reference destination = 8; // Location to which the patient is discharged
 		CodeableConcept dischargeDisposition = 9; // Category or kind of location after discharge
 	}
@@ -557,23 +557,23 @@ message Encounter {
 
 	Identifier identifier = 1; // Identifier(s) by which this encounter is known
 	ECStatus status = 2; // planned | arrived | triaged | in-progress | onleave | finished | cancelled +
-	repeated ECStatusHistory statusHistory = 3; // List of past encounter statuses
-	repeated Coding class = 4; // List of past encounter classes
+	ECStatusHistory statusHistory = 3; // List of past encounter statuses
+	Coding class = 4; // List of past encounter classes
 	ECClassHistory classHistory = 5;
 	CodeableConcept type = 6; // Specific type of encounter
 	CodeableConcept priority = 7; // Indicates the urgency of the encounter
 	Reference subject = 8; // The patient ro group present at the encounter
-	repeated Reference epsiodeOfCare = 9; // Episode(s) of care that this encounter should be recorded against
+	Reference epsiodeOfCare = 9; // Episode(s) of care that this encounter should be recorded against
 	Reference incomingReferral = 10; // The ReferralRequest that initiated this encounter
-	repeated ECParticipant participant = 11; // List of participants involved in the encounter
+	ECParticipant participant = 11; // List of participants involved in the encounter
 	Reference appointment = 12; // The appointment that scheduled this encounter
 	Period period = 13; // The start and end time of the encounter
 	Duration length = 14; // Quantity of time the encounter lasted (less time absent)
 	CodeableConcept reason = 15; // Reason the encounter takes place (code)
-	repeated ECDiagnosis diagnosis = 16; // The list of diagnosis relevant to this encounter
-	repeated Reference account = 17; // The set of accounts that may be used for billing for this Encounter
-	repeated ECHospitalization hospitalization = 18; // Details about the admission to a healthcare service
-	repeated ECLocation location = 19; // List of locations where the patient has been
+	ECDiagnosis diagnosis = 16; // The list of diagnosis relevant to this encounter
+	Reference account = 17; // The set of accounts that may be used for billing for this Encounter
+	ECHospitalization hospitalization = 18; // Details about the admission to a healthcare service
+	ECLocation location = 19; // List of locations where the patient has been
 	Reference serviceProvider = 20; // The custodian organization of this Encounter record
 	Reference partOf = 21; // Another Encounter this encounter is part of
 }

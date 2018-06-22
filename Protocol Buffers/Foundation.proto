@@ -116,7 +116,7 @@ message SampledData {
 	float lowerLimit = 4; // Lower limit of detection
 	float upperLimit = 5; // Upper limit of detection
 	uint64 dimensions = 6; // Number of sample points at each time point
-	repeated float data = 7; // Decimal values with spaces, or "E" | "U" | "L" ("E" (error), "L" (below detection limit) and "U" (above detection limit))
+	float data = 7; // Decimal values with spaces, or "E" | "U" | "L" ("E" (error), "L" (below detection limit) and "U" (above detection limit))
 }
 
 message Identifier {
@@ -165,9 +165,9 @@ message HumanName {
 	HNUse use = 1; // usual | official | temp | nickname | anonymous | old | maiden
  	string text = 2; // Text representation of the full name
  	string family = 3; // Family name (often called 'Surname')
- 	repeated string given = 4; // Given names (not always 'first'). Includes middle names
- 	repeated string prefix = 5; // Parts that come before the name
- 	repeated string suffix = 6; // Parts that come after the name
+ 	string given = 4; // Given names (not always 'first'). Includes middle names
+ 	string prefix = 5; // Parts that come before the name
+ 	string suffix = 6; // Parts that come after the name
  	Period period = 7; // Time period when name was/is in use
 }
 
@@ -189,7 +189,7 @@ message Address {
  	ADCode code = 1; // home | work | temp | old - purpose of this address
  	string type = 2; // postal | physical | both
  	string text = 3; // Text representation of the address
- 	repeated string line = 4; // Street name, number, direction & P.O. Box etc.
+ 	string line = 4; // Street name, number, direction & P.O. Box etc.
  	string city = 5; // Name of city, town etc.
  	string district = 6; // District name (aka county)
  	string state = 7; // Sub-unit of country (abbreviations ok)

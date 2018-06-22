@@ -78,7 +78,7 @@ message AllergyIntolerance {
 	Reference asserter = 16; // Date(/time) of last known occurrence of a reaction
 	Timestamp lastOccurence = 17;
 	Annotation note = 18; // Additional text not captured in other fields
-	repeated AIReaction reaction = 19; // Adverse Reaction Events linked to exposure to substance
+	AIReaction reaction = 19; // Adverse Reaction Events linked to exposure to substance
 }
 
 message Condition {
@@ -197,11 +197,11 @@ message Procedure {
 	Reference context = 11; // Encounter or episode associated with the procedure
 	Timestamp performedDateTime = 12; // Date/Period the procedure was performed
 	Period performedPeriod = 13;
-	repeated PCPerformer performer = 14; // The people who performed the procedure
+	PCPerformer performer = 14; // The people who performed the procedure
 	Reference location = 15; // Where the procedure happened
 	CodeableConcept reasonCode = 16; // Coded reason procedure performed
 	Reference reasonReference = 17; // Condition that is the reason the procedure performed
-	repeated CodeableConcept bodySite = 18; // Target body sites
+	CodeableConcept bodySite = 18; // Target body sites
 	CodeableConcept outcome = 19; // The result of procedure
 	Reference report = 20; // Any report resulting from the procedure
 	CodeableConcept complication = 21; // Complication following the procedure
@@ -209,7 +209,7 @@ message Procedure {
 	CodeableConcept followUp = 23; // Instructions for follow up
 	Annotation note = 24; // Additional information about the procedure
 	PCFocalDevice focalDevice = 25; // Device changed in procedure
-	repeated Reference usedReference = 26; // Items used during procedure
+	Reference usedReference = 26; // Items used during procedure
 	CodeableConcept usedCode = 27; // Coded items used during the procedure
 }
 
@@ -331,7 +331,7 @@ message CarePlan {
 			CodeableConcept code = 3; // Detail type of activity
 			CodeableConcept reasonCode = 4; // Why activity should be done or why activity was prohibited
 			Reference reasonReference = 5; // Condition triggering need for activity
-			repeated Reference goal = 6; // Goals this activity relates to
+			Reference goal = 6; // Goals this activity relates to
 			CPDStatus status = 7; // not-started | scheduled | in-progress | on-hold | completed | cancelled | unknown
 			string statusReason = 8; // Reason for current status
 			bool prohibited = 9; // Do NOT do
@@ -526,7 +526,7 @@ message AdverseEvent {
 	AESeriousness seriousness = 8; // Mild | Moderate | Severe
 	AEOutcome outcome = 9; // resolved | recovering | ongoing | resolvedWithSequelae | fatal | unknown
 	Reference recorder = 10; // Who recorded the adverse event
-	repeated Reference eventParticipant = 11; // Who was involved in the adverse event or the potential adverse event
+	Reference eventParticipant = 11; // Who was involved in the adverse event or the potential adverse event
 	string description = 12; // Description of the adverse event
 	AESuspectEntity suspectEntity = 13; // The suspected agent causing the adverse event
 	Reference subjectMedicalHistory = 14; // AdverseEvent.subjectMedicalHistory
@@ -593,7 +593,7 @@ message Goal {
 	Timestamp statusDate = 10; // When goal status took effect
 	string statusReason = 11; // Reason for current status
 	Reference expressedBy = 12; // Who's responsible for creating Goal?
-	repeated Reference addresses = 13; // Issues addressed by this goal
+	Reference addresses = 13; // Issues addressed by this goal
 	Annotation note = 14; // Comments about the goal
 	CodeableConcept outcomeCode = 15; // What result was achieved regarding the goal?
 	Reference outcomeReference = 16; // Observation that resulted from goal
@@ -674,7 +674,7 @@ message ClinicalImpression {
 	Reference assessor = 10; // The clinician performing the assessment
 	Reference previous = 11; // Reference to last assessment
 	Reference problem = 12; // Relevant impressions of patient state
-	repeated CIInvestigation investigation = 13; // One or more sets of investigations (signs, symptions, etc.)
+	CIInvestigation investigation = 13; // One or more sets of investigations (signs, symptions, etc.)
 	string protocol = 14; // Clinical Protocol followed
 	string summary = 15; // Summary of the assessment
 	CIFinding finding = 16; // Possible or likely findings and diagnoses
